@@ -1,7 +1,7 @@
 
 import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { Car, Calendar, MapPin, Clock, CreditCard, ArrowLeft, Check } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Calendar, MapPin, Clock, CreditCard, ArrowLeft, Check, Star, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
+import { cars } from "@/data/cars";
 
 const Booking = () => {
   const { carId } = useParams();
@@ -26,25 +28,8 @@ const Booking = () => {
   
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock car data - in real app, this would be fetched based on carId
-  const car = {
-    id: parseInt(carId || "1"),
-    name: "Toyota Camry",
-    image: "/placeholder.svg",
-    pricePerDay: 45,
-    fuelType: "Petrol",
-    transmission: "Automatic",
-    features: ["AC", "Music System", "GPS"],
-    rating: 4.8,
-    available: true,
-    description: "Comfortable mid-size sedan perfect for business trips",
-    specifications: {
-      seats: 5,
-      luggage: 3,
-      fuelTank: "60L",
-      mileage: "25 km/l"
-    }
-  };
+  // Get the actual car data based on carId
+  const car = cars.find(c => c.id === parseInt(carId || "1")) || cars[0];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -67,7 +52,7 @@ const Booking = () => {
 
   const totalDays = calculateDays();
   const subtotal = totalDays * car.pricePerDay;
-  const tax = subtotal * 0.1; // 10% tax
+  const tax = subtotal * 0.18; // 18% GST in India
   const total = subtotal + tax;
 
   const handleBooking = async (e: React.FormEvent) => {
@@ -105,52 +90,68 @@ const Booking = () => {
 
     setIsLoading(true);
     
-    // Simulate booking process
+    // Store booking data in localStorage for now
+    const bookingDetails = {
+      id: Date.now(),
+      carId: car.id,
+      carName: car.name,
+      carImage: car.image,
+      carBrand: car.brand,
+      pricePerDay: car.pricePerDay,
+      ...bookingData,
+      totalDays,
+      subtotal,
+      tax,
+      total: Math.round(total),
+      status: "confirmed",
+      bookingDate: new Date().toISOString()
+    };
+    
+    // Get existing bookings
+    const existingBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
+    existingBookings.push(bookingDetails);
+    localStorage.setItem("bookings", JSON.stringify(existingBookings));
+    
     setTimeout(() => {
       toast({
         title: "Booking confirmed!",
-        description: "Your car has been booked successfully",
+        description: "Your EV has been booked successfully",
       });
-      navigate("/dashboard");
+      navigate("/my-bookings");
       setIsLoading(false);
     }, 2000);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center space-x-2">
-              <Car className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">RentCars</span>
-            </Link>
-            <Link to="/cars" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Cars
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Booking</h1>
-          <p className="text-gray-600">Fill in the details below to reserve your car</p>
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate(-1)}
+            className="mb-4 hover:bg-gray-100"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete your booking</h1>
+          <p className="text-gray-600">You're just a few steps away from your EV adventure</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Booking Form */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Rental Details
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  Trip details
                 </CardTitle>
                 <CardDescription>
-                  Select your rental dates and locations
+                  When and where would you like to pick up your EV?
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -166,6 +167,7 @@ const Booking = () => {
                         onChange={handleInputChange}
                         min={new Date().toISOString().split('T')[0]}
                         required
+                        className="h-12"
                       />
                     </div>
                     <div className="space-y-2">
@@ -178,6 +180,7 @@ const Booking = () => {
                         onChange={handleInputChange}
                         min={bookingData.startDate || new Date().toISOString().split('T')[0]}
                         required
+                        className="h-12"
                       />
                     </div>
                   </div>
@@ -188,10 +191,11 @@ const Booking = () => {
                       <Input
                         id="pickupLocation"
                         name="pickupLocation"
-                        placeholder="Enter pickup address"
+                        placeholder="Enter pickup address in India"
                         value={bookingData.pickupLocation}
                         onChange={handleInputChange}
                         required
+                        className="h-12"
                       />
                     </div>
                     <div className="space-y-2">
@@ -203,6 +207,7 @@ const Booking = () => {
                         value={bookingData.dropoffLocation}
                         onChange={handleInputChange}
                         required
+                        className="h-12"
                       />
                     </div>
                   </div>
@@ -212,23 +217,23 @@ const Booking = () => {
                     <Textarea
                       id="additionalRequests"
                       name="additionalRequests"
-                      placeholder="Any special requirements or requests..."
+                      placeholder="Any special requirements..."
                       value={bookingData.additionalRequests}
                       onChange={handleInputChange}
                       rows={3}
                     />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+                  <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700 h-14" disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <Clock className="mr-2 h-4 w-4 animate-spin" />
-                        Processing Booking...
+                        Processing booking...
                       </>
                     ) : (
                       <>
                         <CreditCard className="mr-2 h-4 w-4" />
-                        Proceed to Payment
+                        Confirm booking • ₹{Math.round(total)}
                       </>
                     )}
                   </Button>
@@ -239,100 +244,80 @@ const Booking = () => {
 
           {/* Car Details & Summary */}
           <div className="space-y-6">
-            {/* Car Details */}
-            <Card>
+            {/* Selected Car */}
+            <Card className="border-0 shadow-lg">
               <CardHeader>
-                <CardTitle>Selected Car</CardTitle>
+                <CardTitle>Your EV</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <img 
                     src={car.image} 
                     alt={car.name}
-                    className="w-full h-40 object-cover rounded-lg"
+                    className="w-full h-48 object-cover rounded-lg"
                   />
                   <div>
-                    <h3 className="font-semibold text-lg">{car.name}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{car.description}</p>
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline">{car.fuelType}</Badge>
-                      <Badge variant="outline">{car.transmission}</Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <Badge variant="outline">{car.brand}</Badge>
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Seats:</span>
-                        <span>{car.specifications.seats}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Luggage:</span>
-                        <span>{car.specifications.luggage}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Fuel Tank:</span>
-                        <span>{car.specifications.fuelTank}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Mileage:</span>
-                        <span>{car.specifications.mileage}</span>
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm text-gray-600">{car.rating}</span>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {car.features.map((feature, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          <Check className="h-3 w-3 mr-1" />
-                          {feature}
-                        </Badge>
-                      ))}
+                    <h3 className="font-semibold text-lg mb-2">{car.name}</h3>
+                    <p className="text-sm text-gray-600 mb-3">{car.description}</p>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-gray-400" />
+                        <span>{car.specifications.seats} seats</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-4 w-4 text-gray-400" />
+                        <span>{car.specifications.range}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Booking Summary */}
-            <Card>
+            {/* Price Breakdown */}
+            <Card className="border-0 shadow-lg">
               <CardHeader>
-                <CardTitle>Booking Summary</CardTitle>
+                <CardTitle>Price breakdown</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Price per day:</span>
-                    <span className="font-medium">${car.pricePerDay}</span>
+                    <span className="text-gray-600">₹{car.pricePerDay} × {totalDays || 0} days</span>
+                    <span className="font-medium">₹{subtotal || 0}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Number of days:</span>
-                    <span className="font-medium">{totalDays || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal:</span>
-                    <span className="font-medium">${subtotal || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax (10%):</span>
-                    <span className="font-medium">${tax.toFixed(2) || 0}</span>
+                    <span className="text-gray-600">GST (18%)</span>
+                    <span className="font-medium">₹{Math.round(tax) || 0}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between">
-                    <span className="text-lg font-semibold">Total:</span>
-                    <span className="text-xl font-bold text-blue-600">${total.toFixed(2) || 0}</span>
+                    <span className="text-lg font-semibold">Total</span>
+                    <span className="text-xl font-bold text-blue-600">₹{Math.round(total) || 0}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Included Features */}
-            <Card>
+            {/* What's Included */}
+            <Card className="border-0 shadow-lg">
               <CardHeader>
-                <CardTitle>What's Included</CardTitle>
+                <CardTitle>What's included</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {[
-                    "Unlimited mileage",
-                    "Basic insurance coverage",
+                    "Comprehensive insurance",
                     "24/7 roadside assistance",
-                    "Free cancellation (24h notice)"
+                    "Free charging guidance",
+                    "Unlimited kilometers"
                   ].map((item, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-green-500" />

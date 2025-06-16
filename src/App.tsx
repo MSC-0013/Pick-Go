@@ -9,12 +9,12 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Cars from "./pages/Cars";
 import CarDetails from "./pages/CarDetails";
-import Dashboard from "./pages/Dashboard";
 import Booking from "./pages/Booking";
 import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
+import MyBookings from "./pages/MyBookings";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -28,8 +28,10 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/cars" element={<Cars />} />
           <Route path="/car/:carId" element={<CarDetails />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/booking/:carId" element={<Booking />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

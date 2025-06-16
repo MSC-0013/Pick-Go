@@ -4,9 +4,16 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Car, User, LogOut, Menu, X, Calendar, Settings, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 const Navigation = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -21,7 +28,7 @@ const Navigation = () => {
       description: "Come back soon!"
     });
     navigate("/");
-    setIsSidebarOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
   const navigateWithAuth = (path: string) => {
@@ -35,187 +42,196 @@ const Navigation = () => {
       return;
     }
     navigate(path);
-    setIsSidebarOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
-  const menuItems = [
-    { title: "Home", href: "/", icon: Home, public: true },
-    { title: "Cars", href: "/cars", icon: Car, public: true },
-    { title: "My Bookings", href: "/dashboard", icon: Calendar, public: false },
-    { title: "Profile", href: "/dashboard", icon: User, public: false },
-    { title: "Settings", href: "/dashboard", icon: Settings, public: false },
-  ];
-
-  if (isAdmin) {
-    menuItems.push({ title: "Admin Dashboard", href: "/admin", icon: Settings, public: false });
-  }
-
   return (
-    <>
-      {/* Top Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="lg:hidden"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-              <Link to="/" className="flex items-center space-x-2">
-                <Car className="h-8 w-8 text-blue-600" />
-                <span className="text-xl font-bold text-gray-900">RentCars</span>
-              </Link>
-            </div>
+    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <Car className="h-8 w-8 text-blue-600" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              RentEV
+            </span>
+          </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-8">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link 
+              to="/" 
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+                location.pathname === '/' ? 'text-blue-600' : 'text-gray-700'
+              }`}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/cars" 
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+                location.pathname === '/cars' ? 'text-blue-600' : 'text-gray-700'
+              }`}
+            >
+              Browse Cars
+            </Link>
+            {isAdmin && (
               <Link 
-                to="/" 
-                className={`transition-colors ${location.pathname === '/' ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600'}`}
+                to="/admin" 
+                className={`text-sm font-medium transition-colors hover:text-blue-600 ${
+                  location.pathname === '/admin' ? 'text-blue-600' : 'text-gray-700'
+                }`}
+              >
+                Admin
+              </Link>
+            )}
+          </nav>
+
+          {/* User Actions */}
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 hover:bg-gray-100">
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                      <User className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="hidden md:block text-sm font-medium">{user.name || user.email.split('@')[0]}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium">{user.name || user.email}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigateWithAuth("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigateWithAuth("/my-bookings")}>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    My Bookings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigateWithAuth("/settings")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="hidden md:flex items-center space-x-3">
+                <Link to="/login">
+                  <Button variant="ghost" className="text-sm font-medium">
+                    Log in
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-sm font-medium px-6">
+                    Sign up
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden"
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t bg-white py-4">
+            <div className="space-y-2">
+              <Link 
+                to="/"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`block px-3 py-2 text-sm font-medium transition-colors ${
+                  location.pathname === '/' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                }`}
               >
                 Home
               </Link>
               <Link 
-                to="/cars" 
-                className={`transition-colors ${location.pathname === '/cars' ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600'}`}
+                to="/cars"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`block px-3 py-2 text-sm font-medium transition-colors ${
+                  location.pathname === '/cars' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                }`}
               >
-                Cars
+                Browse Cars
               </Link>
-            </nav>
-
-            {/* User Actions */}
-            <div className="flex items-center space-x-4">
               {user ? (
-                <div className="hidden lg:flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Welcome, {user.name || user.email}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsSidebarOpen(true)}
-                    className="flex items-center gap-2"
+                <>
+                  <button 
+                    onClick={() => navigateWithAuth("/profile")}
+                    className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700"
                   >
-                    <User className="h-4 w-4" />
                     Profile
-                  </Button>
-                </div>
+                  </button>
+                  <button 
+                    onClick={() => navigateWithAuth("/my-bookings")}
+                    className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700"
+                  >
+                    My Bookings
+                  </button>
+                  <button 
+                    onClick={() => navigateWithAuth("/settings")}
+                    className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700"
+                  >
+                    Settings
+                  </button>
+                  {isAdmin && (
+                    <Link 
+                      to="/admin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block px-3 py-2 text-sm font-medium text-gray-700"
+                    >
+                      Admin
+                    </Link>
+                  )}
+                  <button 
+                    onClick={handleLogout}
+                    className="block w-full text-left px-3 py-2 text-sm font-medium text-red-600"
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
-                <div className="hidden lg:flex items-center space-x-4">
-                  <Link to="/login">
-                    <Button variant="outline">Login</Button>
+                <>
+                  <Link 
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-sm font-medium text-gray-700"
+                  >
+                    Log in
                   </Link>
-                  <Link to="/register">
-                    <Button>Sign Up</Button>
+                  <Link 
+                    to="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-md mx-3"
+                  >
+                    Sign up
                   </Link>
-                </div>
+                </>
               )}
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 lg:static lg:shadow-none lg:w-64`}>
-        <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
-          <div className="p-6 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Car className="h-8 w-8 text-blue-600" />
-                <span className="text-xl font-bold text-gray-900">RentCars</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarOpen(false)}
-                className="lg:hidden"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            {user && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <div className="text-sm font-medium text-gray-900">{user.name || user.email}</div>
-                <div className="text-xs text-gray-500">{isAdmin ? "Administrator" : "Member"}</div>
-              </div>
-            )}
-          </div>
-
-          {/* Navigation Items */}
-          <nav className="flex-1 p-4 space-y-2">
-            {menuItems.map((item) => (
-              <button
-                key={item.title}
-                onClick={() => {
-                  if (item.public || user) {
-                    navigate(item.href);
-                    setIsSidebarOpen(false);
-                  } else {
-                    navigateWithAuth(item.href);
-                  }
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all hover:bg-gray-100 hover:scale-105 ${
-                  location.pathname === item.href ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' : 'text-gray-700'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="font-medium">{item.title}</span>
-                {!item.public && !user && (
-                  <span className="ml-auto text-xs text-gray-400">Login required</span>
-                )}
-              </button>
-            ))}
-          </nav>
-
-          {/* Sidebar Footer */}
-          {user && (
-            <div className="p-4 border-t">
-              <Button
-                variant="outline"
-                className="w-full flex items-center gap-2 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
-            </div>
-          )}
-
-          {!user && (
-            <div className="p-4 border-t space-y-2">
-              <Link to="/login" className="block">
-                <Button variant="outline" className="w-full" onClick={() => setIsSidebarOpen(false)}>
-                  Login
-                </Button>
-              </Link>
-              <Link to="/register" className="block">
-                <Button className="w-full" onClick={() => setIsSidebarOpen(false)}>
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-          )}
-        </div>
+        )}
       </div>
-
-      {/* Desktop Sidebar Overlay (when sidebar is open) */}
-      {isSidebarOpen && (
-        <div className="hidden lg:block fixed inset-0 bg-black bg-opacity-20 z-40" onClick={() => setIsSidebarOpen(false)} />
-      )}
-    </>
+    </header>
   );
 };
 
