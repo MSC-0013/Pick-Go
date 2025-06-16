@@ -1,73 +1,92 @@
-# Welcome to your Lovable project
+# 🛺 Pick‑Go
 
-## Project info
+A responsive **MERN stack** application for booking and managing electric vehicle (EV) trips.  
+Built with **MongoDB**, **Express**, **React**, **Node.js**, and optional **TypeScript** support.
 
-**URL**: https://lovable.dev/projects/3f08f6ed-61ad-4624-97ba-8e36ede0cb3d
+---
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+- 🌐 Full user registration and authentication  
+- 🔍 Browse and filter EVs  
+- 🗓️ Booking flow with date selection, price calculation  
+- 📋 “My Trips” dashboard (upcoming, active, past)  
+- 📥 Download receipts as HTML/PDF  
+- 📧 Realistic toast notifications and friendly UI  
+- 🔧 Admin panel for managing listings & users (if implemented)
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3f08f6ed-61ad-4624-97ba-8e36ede0cb3d) and start prompting.
+## 🛠️ Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+| Layer         | Technology              |
+|---------------|-------------------------|
+| Frontend      | React, React Router, Tailwind CSS |
+| Backend       | Node.js, Express, JWT, bcrypt |
+| Database      | MongoDB (Atlas or local) |
+| PDF Generation| html2pdf.js or jsPDF |
+| Storage       | Local storage (tokens, persisted bookings) |
+| UI Library    | RADIX UI / ShadCN + Lucide Icons |
+| Notifications | Custom hook + Toast UI |
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠️ Installation & Setup
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. **Clone**
 
-Follow these steps:
+   ```bash
+   git clone https://github.com/MSC-0013/Pick-Go.git
+   cd Pick-Go
+# Server – .env
+MONGO_URI=<your_mongo_uri>
+JWT_SECRET=<your_jwt_secret>
+# Client – .env
+REACT_APP_API_URL=http://localhost:5000/api
+cd server && npm install && npm run dev
+cd ../client && npm install && npm start
+🧪 Usage
+Navigate to http://localhost:3000
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Register and log in
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Browse EVs and make a booking
 
-# Step 3: Install the necessary dependencies.
-npm i
+View your trips dashboard
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+Download receipts via Download buttons
 
-**Edit a file directly in GitHub**
+🛡️ Security & Auth
+Password hashing with bcrypt
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+JWT-based authentication
 
-**Use GitHub Codespaces**
+Protected routes on backend and frontend
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Basic validation + error handling
 
-## What technologies are used for this project?
+✅ Contributing
+Feel free to submit issues or PRs!
+Suggested roadmap:
 
-This project is built with:
+Add payment gateway
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Enhance booking calendar UX
 
-## How can I deploy this project?
+Admin dashboard improvements
 
-Simply open [Lovable](https://lovable.dev/projects/3f08f6ed-61ad-4624-97ba-8e36ede0cb3d) and click on Share -> Publish.
+Internationalization (i18n)
 
-## Can I connect a custom domain to my Lovable project?
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### 💡 Tips to Elevate It
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **Screenshots**: Add GitHub screenshots of your UI.
+- **Demo link**: Add a live demo or video walkthrough.
+- **Endpoints**: Document API endpoints in a `docs/` folder.
+- **Deploy instructions**: Include Heroku/Vercel details if deployed.
+- **Badges**: Add build status, license, npm version badges.
+
+Just copy, paste, and adapt—your README will be clean, professional, and very user-friendly. Let me know if you want help customizing any section!
+::contentReference[oaicite:0]{index=0}
