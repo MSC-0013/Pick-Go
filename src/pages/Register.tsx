@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Car, Eye, EyeOff } from "lucide-react";
@@ -11,12 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
-    acceptTerms: false
+    acceptTerms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -26,9 +24,9 @@ const Register = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -36,7 +34,6 @@ const Register = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Basic validation
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Password mismatch",
@@ -57,20 +54,21 @@ const Register = () => {
       return;
     }
 
-    // Simulate API call
     setTimeout(() => {
-      if (formData.email && formData.password) {
-        // Simulate successful registration
-        localStorage.setItem("user", JSON.stringify({ 
-          email: formData.email, 
-          name: `${formData.firstName} ${formData.lastName}`,
-          role: "user" 
-        }));
+      if (formData.email && formData.password && formData.fullName) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            email: formData.email,
+            name: formData.fullName,
+            role: "user",
+          })
+        );
         toast({
           title: "Registration successful!",
           description: "Welcome to RentCars",
         });
-        navigate("/dashboard");
+        navigate("/");
       } else {
         toast({
           title: "Registration failed",
@@ -86,9 +84,16 @@ const Register = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors">
+          <Link
+            to="/"
+            className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
+          >
             <Car className="h-8 w-8" />
-            <span className="text-2xl font-bold">RentCars</span>
+            <span className="text-2xl font-bold">Pick</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              &
+            </span>
+            <span className="text-2xl font-bold">Go</span>
           </Link>
         </div>
 
@@ -101,29 +106,16 @@ const Register = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    placeholder="John"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    placeholder="Doe"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input
+                  id="fullName"
+                  name="fullName"
+                  placeholder="Enter your full name"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -131,7 +123,7 @@ const Register = () => {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="john@example.com"
+                  placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -184,8 +176,8 @@ const Register = () => {
                   id="acceptTerms"
                   name="acceptTerms"
                   checked={formData.acceptTerms}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({ ...prev, acceptTerms: checked as boolean }))
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({ ...prev, acceptTerms: checked as boolean }))
                   }
                 />
                 <Label htmlFor="acceptTerms" className="text-sm">

@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import MyBookings from "./pages/MyBookings";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,8 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/contact" element={<Support />} />
+    
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

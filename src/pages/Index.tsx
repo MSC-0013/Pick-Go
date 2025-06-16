@@ -20,9 +20,9 @@ const Index = () => {
     { name: "Tesla", logo: "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=100&h=100&fit=crop", count: 8 },
     { name: "BMW", logo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=100&h=100&fit=crop", count: 6 },
     { name: "Mercedes", logo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=100&h=100&fit=crop", count: 5 },
-    { name: "Audi", logo: "https://images.unsplash.com/photo-1606220588913-b3adef44e5c5?w=100&h=100&fit=crop", count: 4 },
-    { name: "Porsche", logo: "https://images.unsplash.com/photo-1605979399627-5d0c5ae93bdd?w=100&h=100&fit=crop", count: 3 },
-    { name: "Jaguar", logo: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=100&h=100&fit=crop", count: 2 }
+    { name: "Audi", logo: "https://images.unsplash.com/photo-1502161254066-6c74afbf07aa?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", count: 4 },
+    { name: "Porsche", logo: "https://images.unsplash.com/photo-1611651338412-8403fa6e3599?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", count: 3 },
+    { name: "Jaguar", logo: "https://images.unsplash.com/photo-1519381843062-c8b7bc45f987?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8amFndWFyJTIwY2FyfGVufDB8fDB8fHww", count: 2 }
   ];
 
   const destinations = [
@@ -30,8 +30,8 @@ const Index = () => {
     { name: "Delhi", image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=300&h=200&fit=crop", cars: 120 },
     { name: "Bangalore", image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=300&h=200&fit=crop", cars: 100 },
     { name: "Chennai", image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300&h=200&fit=crop", cars: 80 },
-    { name: "Pune", image: "https://images.unsplash.com/photo-1605979399627-5d0c5ae93bdd?w=300&h=200&fit=crop", cars: 70 },
-    { name: "Hyderabad", image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=300&h=200&fit=crop", cars: 60 }
+    { name: "Pune", image: "https://images.unsplash.com/photo-1553064483-f10fe837615f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cHVuZSUyMGNpdHl8ZW58MHx8MHx8fDA%3D", cars: 70 },
+    { name: "Hyderabad", image: "https://plus.unsplash.com/premium_photo-1697730430283-7e4456c78375?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fGh5ZGVyYWJhZGNpdHl8ZW58MHx8MHx8fDA%3D", cars: 60 }
   ];
 
   const airports = [
@@ -45,7 +45,7 @@ const Index = () => {
 
   const handleSearch = () => {
     if (searchLocation) {
-      navigate(`/cars?location=${encodeURIComponent(searchLocation)}&start=${startDate}&end=${endDate}`);
+      navigate(`/cars`);
     } else {
       navigate("/cars");
     }
@@ -62,7 +62,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
-      
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white">
         <div className="absolute inset-0 bg-black/30"></div>
@@ -79,7 +79,7 @@ const Index = () => {
               Book amazing electric vehicles from trusted hosts across India
             </p>
           </div>
-          
+
           {/* Enhanced Search Bar */}
           <div className="max-w-4xl mx-auto">
             <Card className="p-6 shadow-2xl border-0">
@@ -118,9 +118,9 @@ const Index = () => {
                 </div>
               </div>
               <div className="mt-6">
-                <Button 
+                <Button
                   onClick={handleSearch}
-                  size="lg" 
+                  size="lg"
                   className="w-full bg-blue-600 hover:bg-blue-700 h-14 text-lg font-semibold"
                 >
                   <Search className="mr-2 h-5 w-5" />
@@ -141,10 +141,10 @@ const Index = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {airports.map((airport) => (
-              <Card 
+              <Card
                 key={airport.code}
                 className="cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 shadow-lg"
-                onClick={() => handleDestinationClick(airport.name)}
+                onClick={() => navigate('/cars')}
               >
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
@@ -173,14 +173,14 @@ const Index = () => {
           </div>
           <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6">
             {carBrands.map((brand) => (
-              <Card 
+              <Card
                 key={brand.name}
                 className="cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 shadow-lg"
                 onClick={() => handleBrandClick(brand.name)}
               >
                 <CardContent className="p-6 text-center">
-                  <img 
-                    src={brand.logo} 
+                  <img
+                    src={brand.logo}
                     alt={brand.name}
                     className="w-16 h-16 rounded-full mx-auto mb-4 object-cover"
                   />
@@ -202,14 +202,14 @@ const Index = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {destinations.map((destination) => (
-              <Card 
+              <Card
                 key={destination.name}
                 className="cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 shadow-lg overflow-hidden"
                 onClick={() => handleDestinationClick(destination.name)}
               >
                 <div className="relative">
-                  <img 
-                    src={destination.image} 
+                  <img
+                    src={destination.image}
                     alt={destination.name}
                     className="w-full h-48 object-cover"
                   />
@@ -235,14 +235,14 @@ const Index = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredCars.map((car) => (
-              <Card 
-                key={car.id} 
+              <Card
+                key={car.id}
                 className="group hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 border-0 shadow-lg overflow-hidden"
                 onClick={() => navigate(`/car/${car.id}`)}
               >
                 <div className="relative">
-                  <img 
-                    src={car.image} 
+                  <img
+                    src={car.image}
                     alt={car.name}
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                   />

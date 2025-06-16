@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Calendar, MapPin, Car, Clock, Download, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,14 +13,12 @@ const MyBookings = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is logged in
     const user = localStorage.getItem("user");
     if (!user) {
       navigate("/login");
       return;
     }
 
-    // Get bookings from localStorage
     const storedBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
     setBookings(storedBookings);
   }, [navigate]);
@@ -57,7 +54,6 @@ const MyBookings = () => {
     <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Car Image */}
           <div className="md:w-48">
             <img 
               src={booking.carImage} 
@@ -65,8 +61,6 @@ const MyBookings = () => {
               className="w-full h-32 md:h-28 object-cover rounded-lg"
             />
           </div>
-
-          {/* Booking Details */}
           <div className="flex-1">
             <div className="flex justify-between items-start mb-3">
               <div>
@@ -85,20 +79,23 @@ const MyBookings = () => {
               </div>
             </div>
 
-            {/* Trip Details */}
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-gray-400" />
                 <div>
                   <p className="text-sm font-medium">Pickup</p>
-                  <p className="text-sm text-gray-600">{new Date(booking.startDate).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-600">
+                    {new Date(booking.startDate).toLocaleDateString('en-GB')}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-gray-400" />
                 <div>
                   <p className="text-sm font-medium">Return</p>
-                  <p className="text-sm text-gray-600">{new Date(booking.endDate).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-600">
+                    {new Date(booking.endDate).toLocaleDateString('en-GB')}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -117,7 +114,6 @@ const MyBookings = () => {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex gap-3">
               <Button
                 variant="outline"
@@ -139,7 +135,6 @@ const MyBookings = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">My Trips</h1>
