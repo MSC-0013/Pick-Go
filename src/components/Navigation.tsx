@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Car, User, LogOut, Menu, X, Calendar, Settings, Home } from "lucide-react";
+import { Car, User, LogOut, Menu, X, Calendar, Settings, Home, Shield, Phone, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -58,32 +58,70 @@ const Navigation = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/" 
-              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                location.pathname === '/' ? 'text-blue-600' : 'text-gray-700'
-              }`}
-            >
-              Home
-            </Link>
+          <nav className="hidden lg:flex items-center space-x-8">
             <Link 
               to="/cars" 
               className={`text-sm font-medium transition-colors hover:text-blue-600 ${
                 location.pathname === '/cars' ? 'text-blue-600' : 'text-gray-700'
               }`}
             >
-              Browse Cars
+              Find cars
             </Link>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-sm font-medium text-gray-700 hover:text-blue-600">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Insurance & Protection
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-56">
+                <DropdownMenuItem>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Insurance Plans
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Car className="mr-2 h-4 w-4" />
+                  Damage Protection
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Phone className="mr-2 h-4 w-4" />
+                  24/7 Roadside Assistance
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Link 
+              to="/contact" 
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
+            >
+              <Phone className="mr-2 h-4 w-4 inline" />
+              Support
+            </Link>
+
             {isAdmin && (
-              <Link 
-                to="/admin" 
-                className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                  location.pathname === '/admin' ? 'text-blue-600' : 'text-gray-700'
-                }`}
-              >
-                Admin
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-sm font-medium text-gray-700 hover:text-blue-600">
+                    <Wrench className="mr-2 h-4 w-4" />
+                    Host Tools
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/admin")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Admin Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Car className="mr-2 h-4 w-4" />
+                    Manage Fleet
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Booking Analytics
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </nav>
 
@@ -111,7 +149,7 @@ const Navigation = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigateWithAuth("/my-bookings")}>
                     <Calendar className="mr-2 h-4 w-4" />
-                    My Bookings
+                    My Trips
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigateWithAuth("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
@@ -120,7 +158,7 @@ const Navigation = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
-                    Logout
+                    Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -144,7 +182,7 @@ const Navigation = () => {
               variant="ghost"
               size="sm"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden"
+              className="lg:hidden"
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -153,17 +191,8 @@ const Navigation = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t bg-white py-4">
+          <div className="lg:hidden border-t bg-white py-4">
             <div className="space-y-2">
-              <Link 
-                to="/"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block px-3 py-2 text-sm font-medium transition-colors ${
-                  location.pathname === '/' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
-                }`}
-              >
-                Home
-              </Link>
               <Link 
                 to="/cars"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -171,7 +200,17 @@ const Navigation = () => {
                   location.pathname === '/cars' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
                 }`}
               >
-                Browse Cars
+                Find cars
+              </Link>
+              <button className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700">
+                Insurance & Protection
+              </button>
+              <Link 
+                to="/contact"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block px-3 py-2 text-sm font-medium text-gray-700"
+              >
+                Support
               </Link>
               {user ? (
                 <>
@@ -185,7 +224,7 @@ const Navigation = () => {
                     onClick={() => navigateWithAuth("/my-bookings")}
                     className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700"
                   >
-                    My Bookings
+                    My Trips
                   </button>
                   <button 
                     onClick={() => navigateWithAuth("/settings")}
@@ -199,14 +238,14 @@ const Navigation = () => {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="block px-3 py-2 text-sm font-medium text-gray-700"
                     >
-                      Admin
+                      Admin Dashboard
                     </Link>
                   )}
                   <button 
                     onClick={handleLogout}
                     className="block w-full text-left px-3 py-2 text-sm font-medium text-red-600"
                   >
-                    Logout
+                    Log out
                   </button>
                 </>
               ) : (

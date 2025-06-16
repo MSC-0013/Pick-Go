@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Star, Users, Zap, MapPin, ArrowRight } from "lucide-react";
+import { Search, Star, MapPin, ArrowRight, Calendar, Clock, Plane, Car as CarIcon, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,19 +10,53 @@ import Navigation from "@/components/Navigation";
 import { cars } from "@/data/cars";
 
 const Index = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchLocation, setSearchLocation] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
-  const featuredCars = cars.slice(0, 8);
+  const carBrands = [
+    { name: "Tesla", logo: "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=100&h=100&fit=crop", count: 8 },
+    { name: "BMW", logo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=100&h=100&fit=crop", count: 6 },
+    { name: "Mercedes", logo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=100&h=100&fit=crop", count: 5 },
+    { name: "Audi", logo: "https://images.unsplash.com/photo-1606220588913-b3adef44e5c5?w=100&h=100&fit=crop", count: 4 },
+    { name: "Porsche", logo: "https://images.unsplash.com/photo-1605979399627-5d0c5ae93bdd?w=100&h=100&fit=crop", count: 3 },
+    { name: "Jaguar", logo: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=100&h=100&fit=crop", count: 2 }
+  ];
 
-  const filteredCars = featuredCars.filter(car => 
-    car.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    car.brand.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const destinations = [
+    { name: "Mumbai", image: "https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=300&h=200&fit=crop", cars: 150 },
+    { name: "Delhi", image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=300&h=200&fit=crop", cars: 120 },
+    { name: "Bangalore", image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=300&h=200&fit=crop", cars: 100 },
+    { name: "Chennai", image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300&h=200&fit=crop", cars: 80 },
+    { name: "Pune", image: "https://images.unsplash.com/photo-1605979399627-5d0c5ae93bdd?w=300&h=200&fit=crop", cars: 70 },
+    { name: "Hyderabad", image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=300&h=200&fit=crop", cars: 60 }
+  ];
 
-  const handleCarClick = (carId: number) => {
-    navigate(`/car/${carId}`);
+  const airports = [
+    { name: "Mumbai Airport (BOM)", code: "BOM", cars: 45 },
+    { name: "Delhi Airport (DEL)", code: "DEL", cars: 38 },
+    { name: "Bangalore Airport (BLR)", code: "BLR", cars: 32 },
+    { name: "Chennai Airport (MAA)", code: "MAA", cars: 28 }
+  ];
+
+  const featuredCars = cars.slice(0, 6);
+
+  const handleSearch = () => {
+    if (searchLocation) {
+      navigate(`/cars?location=${encodeURIComponent(searchLocation)}&start=${startDate}&end=${endDate}`);
+    } else {
+      navigate("/cars");
+    }
+  };
+
+  const handleBrandClick = (brand: string) => {
+    navigate(`/cars?brand=${encodeURIComponent(brand)}`);
+  };
+
+  const handleDestinationClick = (destination: string) => {
+    navigate(`/cars?location=${encodeURIComponent(destination)}`);
   };
 
   return (
@@ -30,91 +64,181 @@ const Index = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-black text-white">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-bold mb-8 leading-tight">
+      <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 text-white">
+        <div className="absolute inset-0 bg-black/30"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+          <div className="text-center max-w-4xl mx-auto mb-12">
+            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
               The world's largest
-              <span className="block bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="block text-yellow-400">
                 EV car sharing
               </span>
               marketplace
             </h1>
-            <p className="text-xl lg:text-2xl text-gray-300 mb-12 leading-relaxed">
-              Book amazing electric vehicles from trusted hosts around India. 
-              Experience the future of transportation.
+            <p className="text-xl lg:text-2xl text-blue-100 mb-8">
+              Book amazing electric vehicles from trusted hosts across India
             </p>
-            
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto bg-white rounded-2xl p-2 shadow-2xl">
-              <div className="flex items-center gap-4">
-                <div className="flex-1 flex items-center gap-3 px-4">
-                  <MapPin className="h-5 w-5 text-gray-400" />
-                  <div className="flex-1">
+          </div>
+          
+          {/* Enhanced Search Bar */}
+          <div className="max-w-4xl mx-auto">
+            <Card className="p-6 shadow-2xl border-0">
+              <div className="grid lg:grid-cols-4 gap-4">
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Where</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
-                      placeholder="Where do you want to go?"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="border-0 text-lg text-gray-900 placeholder:text-gray-500 focus-visible:ring-0"
+                      placeholder="City, airport, address or hotel"
+                      value={searchLocation}
+                      onChange={(e) => setSearchLocation(e.target.value)}
+                      className="pl-10 h-12 text-gray-900 border-gray-300"
                     />
                   </div>
                 </div>
-                <Link to="/cars">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700 px-8 py-6 rounded-xl">
-                    <Search className="mr-2 h-5 w-5" />
-                    Search
-                  </Button>
-                </Link>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">From</label>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="h-12 text-gray-900 border-gray-300"
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Until</label>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="h-12 text-gray-900 border-gray-300"
+                    min={startDate || new Date().toISOString().split('T')[0]}
+                  />
+                </div>
               </div>
-            </div>
+              <div className="mt-6">
+                <Button 
+                  onClick={handleSearch}
+                  size="lg" 
+                  className="w-full bg-blue-600 hover:bg-blue-700 h-14 text-lg font-semibold"
+                >
+                  <Search className="mr-2 h-5 w-5" />
+                  Search for cars
+                </Button>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      {/* Browse by Airport */}
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-8">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Zap className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4">100% Electric</h3>
-              <p className="text-gray-600">Premium electric vehicles with zero emissions and cutting-edge technology.</p>
-            </div>
-            <div className="text-center p-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4">Trusted Community</h3>
-              <p className="text-gray-600">Join thousands of satisfied customers sharing amazing EVs.</p>
-            </div>
-            <div className="text-center p-8">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Star className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4">Premium Experience</h3>
-              <p className="text-gray-600">Luxury vehicles with comprehensive insurance and 24/7 support.</p>
-            </div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Find cars at airports</h2>
+            <p className="text-lg text-gray-600">Pick up your rental car right when you land</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {airports.map((airport) => (
+              <Card 
+                key={airport.code}
+                className="cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 shadow-lg"
+                onClick={() => handleDestinationClick(airport.name)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Plane className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{airport.code}</h3>
+                      <p className="text-sm text-gray-600">{airport.cars} cars available</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 font-medium">{airport.name}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Browse by Make */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Browse by make</h2>
+            <p className="text-lg text-gray-600">Find your favorite electric vehicle brand</p>
+          </div>
+          <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {carBrands.map((brand) => (
+              <Card 
+                key={brand.name}
+                className="cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 shadow-lg"
+                onClick={() => handleBrandClick(brand.name)}
+              >
+                <CardContent className="p-6 text-center">
+                  <img 
+                    src={brand.logo} 
+                    alt={brand.name}
+                    className="w-16 h-16 rounded-full mx-auto mb-4 object-cover"
+                  />
+                  <h3 className="font-semibold text-lg mb-1">{brand.name}</h3>
+                  <p className="text-sm text-gray-600">{brand.count} cars</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Browse by Destination */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Popular destinations</h2>
+            <p className="text-lg text-gray-600">Explore cars in India's top cities</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {destinations.map((destination) => (
+              <Card 
+                key={destination.name}
+                className="cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 shadow-lg overflow-hidden"
+                onClick={() => handleDestinationClick(destination.name)}
+              >
+                <div className="relative">
+                  <img 
+                    src={destination.image} 
+                    alt={destination.name}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <h3 className="font-bold text-xl mb-1">{destination.name}</h3>
+                    <p className="text-sm">{destination.cars} cars available</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Featured Cars */}
-      <section className="py-20">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured electric vehicles</h2>
-            <p className="text-xl text-gray-600">Discover our premium collection of EVs</p>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured electric vehicles</h2>
+            <p className="text-lg text-gray-600">Discover our premium collection starting from ₹2,000/day</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredCars.map((car) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredCars.map((car) => (
               <Card 
                 key={car.id} 
                 className="group hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 border-0 shadow-lg overflow-hidden"
-                onClick={() => handleCarClick(car.id)}
+                onClick={() => navigate(`/car/${car.id}`)}
               >
                 <div className="relative">
                   <img 
@@ -123,7 +247,7 @@ const Index = () => {
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute top-3 right-3">
-                    <Badge className="bg-white text-gray-900 hover:bg-white">
+                    <Badge className={`${car.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {car.available ? "Available" : "Booked"}
                     </Badge>
                   </div>
@@ -154,11 +278,40 @@ const Index = () => {
 
           <div className="text-center mt-12">
             <Link to="/cars">
-              <Button size="lg" variant="outline" className="px-8 py-6 text-lg">
+              <Button size="lg" variant="outline" className="px-8 py-6 text-lg hover:bg-blue-50">
                 View all cars
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center p-8">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Shield className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-4">Comprehensive Protection</h3>
+              <p className="text-gray-600">Every trip includes comprehensive insurance and 24/7 roadside assistance.</p>
+            </div>
+            <div className="text-center p-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-4">Trusted Community</h3>
+              <p className="text-gray-600">Join thousands of satisfied customers sharing amazing EVs across India.</p>
+            </div>
+            <div className="text-center p-8">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CarIcon className="h-8 w-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold mb-4">Premium Experience</h3>
+              <p className="text-gray-600">Luxury electric vehicles with cutting-edge technology and eco-friendly driving.</p>
+            </div>
           </div>
         </div>
       </section>

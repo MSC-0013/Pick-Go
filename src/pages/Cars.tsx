@@ -1,7 +1,7 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Search, SlidersHorizontal, Star, ArrowRight, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Search, Star, ArrowRight, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,11 +11,20 @@ import Navigation from "@/components/Navigation";
 import { cars } from "@/data/cars";
 
 const Cars = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedBrand, setSelectedBrand] = useState("all");
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('location') || "");
+  const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || "all");
   const [priceRange, setPriceRange] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Set initial filters from URL params
+    const location = searchParams.get('location');
+    const brand = searchParams.get('brand');
+    if (location) setSearchTerm(location);
+    if (brand) setSelectedBrand(brand);
+  }, [searchParams]);
 
   const brands = [...new Set(cars.map(car => car.brand))];
 
@@ -25,9 +34,9 @@ const Cars = () => {
                            car.brand.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesBrand = selectedBrand === "all" || car.brand === selectedBrand;
       const matchesPrice = priceRange === "all" ||
-                          (priceRange === "budget" && car.pricePerDay <= 100) ||
-                          (priceRange === "mid" && car.pricePerDay > 100 && car.pricePerDay <= 200) ||
-                          (priceRange === "luxury" && car.pricePerDay > 200);
+                          (priceRange === "budget" && car.pricePerDay <= 3000) ||
+                          (priceRange === "mid" && car.pricePerDay > 3000 && car.pricePerDay <= 7000) ||
+                          (priceRange === "luxury" && car.pricePerDay > 7000);
       return matchesSearch && matchesBrand && matchesPrice;
     })
     .sort((a, b) => {
@@ -43,6 +52,13 @@ const Cars = () => {
     navigate(`/car/${carId}`);
   };
 
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedBrand("all");
+    setPriceRange("all");
+    setSortBy("name");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -51,17 +67,17 @@ const Cars = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Electric vehicles for every journey</h1>
-          <p className="text-xl text-gray-600">Discover amazing EVs from trusted hosts across India</p>
+          <p className="text-xl text-gray-600">Discover amazing EVs from ₹2,000/day across India</p>
         </div>
 
-        {/* Search and Filters */}
+        {/* Horizontal Filters */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <div className="grid lg:grid-cols-6 gap-4">
-            <div className="lg:col-span-2">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex-1 min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
-                  placeholder="Search cars or brands..."
+                  placeholder="Search cars, brands, or locations..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 h-12 border-0 bg-gray-50 focus:bg-white transition-colors"
@@ -70,7 +86,7 @@ const Cars = () => {
             </div>
             
             <Select value={selectedBrand} onValueChange={setSelectedBrand}>
-              <SelectTrigger className="h-12 border-0 bg-gray-50">
+              <SelectTrigger className="w-[180px] h-12 border-0 bg-gray-50">
                 <SelectValue placeholder="All brands" />
               </SelectTrigger>
               <SelectContent>
@@ -82,19 +98,19 @@ const Cars = () => {
             </Select>
 
             <Select value={priceRange} onValueChange={setPriceRange}>
-              <SelectTrigger className="h-12 border-0 bg-gray-50">
+              <SelectTrigger className="w-[180px] h-12 border-0 bg-gray-50">
                 <SelectValue placeholder="Price range" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All prices</SelectItem>
-                <SelectItem value="budget">Under ₹100/day</SelectItem>
-                <SelectItem value="mid">₹100-₹200/day</SelectItem>
-                <SelectItem value="luxury">₹200+/day</SelectItem>
+                <SelectItem value="budget">Under ₹3,000/day</SelectItem>
+                <SelectItem value="mid">₹3,000-₹7,000/day</SelectItem>
+                <SelectItem value="luxury">₹7,000+/day</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="h-12 border-0 bg-gray-50">
+              <SelectTrigger className="w-[180px] h-12 border-0 bg-gray-50">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -105,10 +121,16 @@ const Cars = () => {
               </SelectContent>
             </Select>
 
-            <Button className="h-12 bg-blue-600 hover:bg-blue-700">
-              <Filter className="mr-2 h-4 w-4" />
-              Filter
-            </Button>
+            {(searchTerm || selectedBrand !== "all" || priceRange !== "all") && (
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="h-12 px-4"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+            )}
           </div>
         </div>
 
@@ -184,11 +206,7 @@ const Cars = () => {
             <p className="text-gray-600 mb-6">Try adjusting your search criteria</p>
             <Button 
               variant="outline" 
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedBrand("all");
-                setPriceRange("all");
-              }}
+              onClick={clearFilters}
             >
               Clear filters
             </Button>

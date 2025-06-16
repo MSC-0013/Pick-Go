@@ -7,49 +7,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
+import { cars } from "@/data/cars";
 
 const CarDetails = () => {
   const { carId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Enhanced car data with premium EVs
-  const car = {
-    id: parseInt(carId || "1"),
-    name: "Tesla Model S",
-    brand: "Tesla",
-    images: [
-      "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=800&h=600&fit=crop"
-    ],
-    pricePerDay: 150,
-    fuelType: "Electric",
-    transmission: "Automatic",
-    features: ["Autopilot", "Premium Audio", "GPS Navigation", "Climate Control", "Wireless Charging"],
-    rating: 4.9,
-    reviewCount: 234,
-    available: true,
-    description: "Experience the future of driving with Tesla Model S. Premium electric sedan with cutting-edge technology.",
-    specifications: {
-      seats: 5,
-      luggage: 2,
-      range: "405 miles",
-      acceleration: "3.1s 0-60mph",
-      topSpeed: "200 mph",
-      chargingTime: "45 min (Supercharger)"
-    },
-    safetyFeatures: ["Autopilot", "Emergency Braking", "Collision Avoidance", "All-Wheel Drive"],
-    included: [
-      "Unlimited mileage within city",
-      "Comprehensive insurance",
-      "24/7 roadside assistance",
-      "Free charging at Tesla stations",
-      "Professional cleaning"
-    ]
-  };
+  // Get the actual car data based on carId
+  const car = cars.find(c => c.id === parseInt(carId || "1"));
+
+  if (!car) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Car not found</h1>
+          <Link to="/cars">
+            <Button>Back to Cars</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const [selectedImage, setSelectedImage] = useState(0);
+  
+  // Create multiple image variations for the gallery
+  const carImages = [
+    car.image,
+    car.image.replace('crop', 'crop&sat=-20'),
+    car.image.replace('crop', 'crop&brightness=10')
+  ];
 
   const handleBookNow = () => {
     const user = localStorage.getItem("user");
@@ -67,6 +56,8 @@ const CarDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <div className="mb-6">
@@ -81,13 +72,13 @@ const CarDetails = () => {
           <div className="space-y-4">
             <div className="aspect-[4/3] rounded-lg overflow-hidden">
               <img 
-                src={car.images[selectedImage]} 
+                src={carImages[selectedImage]} 
                 alt={car.name}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               />
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {car.images.map((image, index) => (
+              {carImages.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -115,7 +106,7 @@ const CarDetails = () => {
                 <div className="flex items-center gap-1">
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   <span className="font-medium">{car.rating}</span>
-                  <span className="text-gray-600">({car.reviewCount} reviews)</span>
+                  <span className="text-gray-600">(150+ reviews)</span>
                 </div>
               </div>
               <p className="text-gray-600 text-lg">{car.description}</p>
@@ -126,14 +117,14 @@ const CarDetails = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-3xl font-bold text-blue-600">${car.pricePerDay}</span>
+                    <span className="text-3xl font-bold text-blue-600">₹{car.pricePerDay}</span>
                     <span className="text-gray-600 text-lg">/day</span>
                   </div>
                   <Button 
                     size="lg" 
                     onClick={handleBookNow}
                     disabled={!car.available}
-                    className="px-8 hover:scale-105 transition-transform"
+                    className="px-8 hover:scale-105 transition-transform bg-blue-600 hover:bg-blue-700"
                   >
                     {car.available ? (
                       <>
@@ -175,7 +166,7 @@ const CarDetails = () => {
                 <Shield className="h-5 w-5 text-gray-500" />
                 <div>
                   <div className="font-medium">{car.specifications.acceleration}</div>
-                  <div className="text-sm text-gray-600">0-60 mph</div>
+                  <div className="text-sm text-gray-600">0-100 kmh</div>
                 </div>
               </div>
             </div>
@@ -203,12 +194,12 @@ const CarDetails = () => {
                 <span className="font-medium">{car.specifications.range}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Top Speed:</span>
-                <span className="font-medium">{car.specifications.topSpeed}</span>
+                <span className="text-gray-600">Acceleration:</span>
+                <span className="font-medium">{car.specifications.acceleration}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Charging:</span>
-                <span className="font-medium">{car.specifications.chargingTime}</span>
+                <span className="text-gray-600">Fuel Type:</span>
+                <span className="font-medium">{car.fuelType}</span>
               </div>
             </CardContent>
           </Card>
@@ -237,7 +228,14 @@ const CarDetails = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {car.included.map((item, index) => (
+                {[
+                  "Comprehensive insurance",
+                  "24/7 roadside assistance", 
+                  "Free charging guidance",
+                  "Unlimited kilometers",
+                  "Professional cleaning",
+                  "GPS navigation system"
+                ].map((item, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="text-sm">{item}</span>
