@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Calendar, MapPin, Clock, CreditCard, ArrowLeft, Check, Star, Users, Zap } from "lucide-react";
@@ -59,8 +58,8 @@ const Booking = () => {
     e.preventDefault();
     
     // Check if user is logged in
-    const user = localStorage.getItem("user");
-    if (!user) {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) {
       toast({
         title: "Login required",
         description: "Please login to make a booking",
@@ -69,6 +68,8 @@ const Booking = () => {
       navigate("/login");
       return;
     }
+
+    const user = JSON.parse(userStr);
 
     if (!bookingData.startDate || !bookingData.endDate) {
       toast({
@@ -90,9 +91,12 @@ const Booking = () => {
 
     setIsLoading(true);
     
-    // Store booking data in localStorage for now
+    // Store booking data with complete user information
     const bookingDetails = {
-      id: Date.now(),
+      id: `booking-${Date.now()}`,
+      userId: user.id,
+      userEmail: user.email,
+      userName: user.name || 'User',
       carId: car.id,
       carName: car.name,
       carImage: car.image,
@@ -101,9 +105,10 @@ const Booking = () => {
       ...bookingData,
       totalDays,
       subtotal,
-      tax,
+      tax: Math.round(tax),
       total: Math.round(total),
       status: "confirmed",
+      paymentStatus: "paid",
       bookingDate: new Date().toISOString()
     };
     

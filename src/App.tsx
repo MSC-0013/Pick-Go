@@ -1,4 +1,4 @@
-
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +16,8 @@ import MyBookings from "./pages/MyBookings";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Support from "./pages/Support";
+import { AuthProvider } from "@/contexts/AuthContext";
+
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,7 @@ const App = () => (
           <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/contact" element={<Support />} />
+          
     
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />

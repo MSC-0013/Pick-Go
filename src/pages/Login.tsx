@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Car, Eye, EyeOff } from "lucide-react";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,21 +15,26 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      if (email && password) {
-        // Simulate successful login
-        localStorage.setItem("user", JSON.stringify({ email, role: "user" }));
+    try {
+      const success = await login(email, password);
+      if (success) {
         toast({
           title: "Login successful!",
           description: "Welcome back to RentCars",
         });
-        navigate("/");
+        
+        // Redirect based on user role
+        if (email === 'admin@gmail.com') {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
         toast({
           title: "Login failed",
@@ -37,8 +42,15 @@ const Login = () => {
           variant: "destructive",
         });
       }
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -47,11 +59,7 @@ const Login = () => {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors">
             <Car className="h-8 w-8" />
-            <span className="text-2xl font-bold">Pick</span>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            &
-            </span>
-            <span className="text-2xl font-bold">Go</span>
+            <span className="text-2xl font-bold">RentCars</span>
           </Link>
         </div>
 
@@ -96,7 +104,7 @@ const Login = () => {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <Link to="/" className="text-sm text-blue-600 hover:text-blue-500">
+                <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
                   Forgot password?
                 </Link>
               </div>

@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Car, User, LogOut, Menu, X, Calendar, Settings, Home, Shield, Phone, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,12 +18,11 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-  const isAdmin = user?.email === "admin@gmail.com";
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
+  const { user, logout, isAdmin } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
     toast({
       title: "Logged out successfully",
       description: "Come back soon!"
@@ -30,6 +30,7 @@ const Navigation = () => {
     navigate("/");
     setIsMobileMenuOpen(false);
   };
+
 
   const navigateWithAuth = (path: string) => {
     if (!user) {
@@ -59,15 +60,14 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            <Link 
-              to="/cars" 
-              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                location.pathname === '/cars' ? 'text-blue-600' : 'text-gray-700'
-              }`}
+            <Link
+              to="/cars"
+              className={`text-sm font-medium transition-colors hover:text-blue-600 ${location.pathname === '/cars' ? 'text-blue-600' : 'text-gray-700'
+                }`}
             >
               Find cars
             </Link>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="text-sm font-medium text-gray-700 hover:text-blue-600">
@@ -91,8 +91,8 @@ const Navigation = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link 
-              to="/contact" 
+            <Link
+              to="/contact"
               className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
             >
               <Phone className="mr-2 h-4 w-4 inline" />
@@ -193,19 +193,18 @@ const Navigation = () => {
         {isMobileMenuOpen && (
           <div className="lg:hidden border-t bg-white py-4">
             <div className="space-y-2">
-              <Link 
+              <Link
                 to="/cars"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`block px-3 py-2 text-sm font-medium transition-colors ${
-                  location.pathname === '/cars' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
-                }`}
+                className={`block px-3 py-2 text-sm font-medium transition-colors ${location.pathname === '/cars' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                  }`}
               >
                 Find cars
               </Link>
               <button className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700">
                 Insurance & Protection
               </button>
-              <Link 
+              <Link
                 to="/contact"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block px-3 py-2 text-sm font-medium text-gray-700"
@@ -214,26 +213,26 @@ const Navigation = () => {
               </Link>
               {user ? (
                 <>
-                  <button 
+                  <button
                     onClick={() => navigateWithAuth("/profile")}
                     className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700"
                   >
                     Profile
                   </button>
-                  <button 
+                  <button
                     onClick={() => navigateWithAuth("/my-bookings")}
                     className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700"
                   >
                     My Trips
                   </button>
-                  <button 
+                  <button
                     onClick={() => navigateWithAuth("/settings")}
                     className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-700"
                   >
                     Settings
                   </button>
                   {isAdmin && (
-                    <Link 
+                    <Link
                       to="/admin"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="block px-3 py-2 text-sm font-medium text-gray-700"
@@ -241,7 +240,7 @@ const Navigation = () => {
                       Admin Dashboard
                     </Link>
                   )}
-                  <button 
+                  <button
                     onClick={handleLogout}
                     className="block w-full text-left px-3 py-2 text-sm font-medium text-red-600"
                   >
@@ -250,14 +249,14 @@ const Navigation = () => {
                 </>
               ) : (
                 <>
-                  <Link 
+                  <Link
                     to="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block px-3 py-2 text-sm font-medium text-gray-700"
                   >
                     Log in
                   </Link>
-                  <Link 
+                  <Link
                     to="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-md mx-3"

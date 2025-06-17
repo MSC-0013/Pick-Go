@@ -1,95 +1,65 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Car, Plus, Edit, Trash2, Users, DollarSign, Calendar, BarChart3 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Car, Plus, BarChart3, Users, DollarSign, Calendar, TrendingUp, Package, LogOut, UserCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useAuth } from "@/contexts/AuthContext";
+import AddCarForm from "@/components/admin/AddCarForm";
+import BookingManager from "@/components/admin/BookingManager";
+import UserManager from "@/components/admin/UserManager";
 
 const Admin = () => {
-  // Mock data for admin dashboard
+  const [showAddCarForm, setShowAddCarForm] = useState(false);
+  const { logout, user, getAllUsers, getAllBookings } = useAuth();
+  const navigate = useNavigate();
+
+  const users = getAllUsers();
+  const bookings = getAllBookings();
+
+  // Calculate statistics properly to avoid circular dependency
+  const totalRevenue = bookings.filter(b => b.paymentStatus === 'paid').reduce((sum, b) => sum + b.total, 0);
+  const averageBookingValue = bookings.length > 0 ? Math.round(totalRevenue / bookings.length) : 0;
+
   const stats = {
-    totalCars: 25,
-    totalBookings: 142,
-    totalRevenue: 15420,
-    activeBookings: 8
+    totalCars: 50, // You can make this dynamic by storing cars in localStorage too
+    totalBookings: bookings.length,
+    totalRevenue,
+    activeBookings: bookings.filter(b => ['confirmed', 'processing'].includes(b.status)).length,
+    totalUsers: users.length,
+    activeUsers: users.filter(user => {
+      const userBookings = bookings.filter(b => b.userEmail === user.email);
+      return userBookings.length > 0;
+    }).length,
+    pendingBookings: bookings.filter(b => b.status === 'pending').length,
+    monthlyGrowth: bookings.length > 0 ? 15.2 : 0,
+    averageBookingValue
   };
 
-  const recentBookings = [
-    {
-      id: 1,
-      customerName: "John Doe",
-      carName: "Toyota Camry",
-      startDate: "2024-01-15",
-      endDate: "2024-01-18",
-      status: "confirmed",
-      amount: 135
-    },
-    {
-      id: 2,
-      customerName: "Jane Smith",
-      carName: "BMW X3",
-      startDate: "2024-01-20",
-      endDate: "2024-01-25",
-      status: "pending",
-      amount: 425
-    },
-    {
-      id: 3,
-      customerName: "Mike Johnson",
-      carName: "Honda Civic",
-      startDate: "2024-01-12",
-      endDate: "2024-01-15",
-      status: "completed",
-      amount: 120
-    }
-  ];
-
-  const cars = [
-    {
-      id: 1,
-      name: "Toyota Camry",
-      brand: "Toyota",
-      pricePerDay: 45,
-      status: "available",
-      totalBookings: 23
-    },
-    {
-      id: 2,
-      name: "BMW X3",
-      brand: "BMW",
-      pricePerDay: 85,
-      status: "booked",
-      totalBookings: 15
-    },
-    {
-      id: 3,
-      name: "Honda Civic",
-      brand: "Honda",
-      pricePerDay: 40,
-      status: "available",
-      totalBookings: 31
-    }
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "completed":
-        return "bg-blue-100 text-blue-800";
-      case "available":
-        return "bg-green-100 text-green-800";
-      case "booked":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
+
+  const handleCarAdded = () => {
+    setShowAddCarForm(false);
+  };
+
+  const recentBookings = bookings
+    .sort((a, b) => new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime())
+    .slice(0, 5);
+
+  const topCustomers = users
+    .map(user => ({
+      ...user,
+      totalSpent: bookings
+        .filter(b => b.userEmail === user.email && b.paymentStatus === 'paid')
+        .reduce((sum, b) => sum + b.total, 0),
+      bookingCount: bookings.filter(b => b.userEmail === user.email).length
+    }))
+    .filter(user => user.totalSpent > 0)
+    .sort((a, b) => b.totalSpent - a.totalSpent)
+    .slice(0, 5);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,9 +72,14 @@ const Admin = () => {
               <span className="text-xl font-bold text-gray-900">RentCars Admin</span>
             </Link>
             <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">Welcome, {user?.name || 'Admin'}</span>
               <Link to="/">
                 <Button variant="outline">Back to Site</Button>
               </Link>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
             </div>
           </div>
         </div>
@@ -113,202 +88,254 @@ const Admin = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage your car rental business</p>
+          <p className="text-gray-600">Complete management system for your car rental business</p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Enhanced Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Cars</CardTitle>
-              <Car className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCars}</div>
-              <p className="text-xs text-muted-foreground">+2 from last month</p>
+              <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
+              <p className="text-xs opacity-80">From {stats.totalBookings} bookings</p>
             </CardContent>
           </Card>
-          <Card>
+          
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalBookings}</div>
-              <p className="text-xs text-muted-foreground">+12% from last month</p>
+              <p className="text-xs opacity-80">{stats.activeBookings} currently active</p>
             </CardContent>
           </Card>
-          <Card>
+          
+          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${stats.totalRevenue}</div>
-              <p className="text-xs text-muted-foreground">+8% from last month</p>
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              <p className="text-xs opacity-80">{stats.activeUsers} active users</p>
             </CardContent>
           </Card>
-          <Card>
+          
+          <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Bookings</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Pending Bookings</CardTitle>
+              <Zap className="h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.activeBookings}</div>
-              <p className="text-xs text-muted-foreground">Currently ongoing</p>
+              <div className="text-2xl font-bold">{stats.pendingBookings}</div>
+              <p className="text-xs opacity-80">Require attention</p>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="bookings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="cars">Cars</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="cars">Fleet</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Recent Bookings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {recentBookings.length > 0 ? recentBookings.map((booking, index) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{booking.carName}</div>
+                          <div className="text-sm text-gray-500">{booking.userName}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600">₹{booking.total.toLocaleString()}</div>
+                          <div className="text-xs text-gray-500">{new Date(booking.bookingDate).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    )) : (
+                      <p className="text-gray-500 text-center py-4">No bookings yet</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCheck className="h-5 w-5" />
+                    Top Customers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {topCustomers.length > 0 ? topCustomers.map((customer, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 border-l-2 border-blue-200 bg-blue-50">
+                        <div>
+                          <div className="font-medium">{customer.name}</div>
+                          <div className="text-sm text-gray-500">{customer.bookingCount} bookings</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600">₹{customer.totalSpent.toLocaleString()}</div>
+                        </div>
+                      </div>
+                    )) : (
+                      <p className="text-gray-500 text-center py-4">No customers yet</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           <TabsContent value="bookings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Bookings</CardTitle>
-                <CardDescription>
-                  Manage and track customer bookings
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Car</TableHead>
-                      <TableHead>Date Range</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentBookings.map((booking) => (
-                      <TableRow key={booking.id}>
-                        <TableCell className="font-medium">{booking.customerName}</TableCell>
-                        <TableCell>{booking.carName}</TableCell>
-                        <TableCell>
-                          {booking.startDate} to {booking.endDate}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(booking.status)}>
-                            {booking.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>${booking.amount}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            <BookingManager />
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
+            <UserManager />
           </TabsContent>
 
           <TabsContent value="cars" className="space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Car Fleet</CardTitle>
-                  <CardDescription>
-                    Manage your car inventory
-                  </CardDescription>
-                </div>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Car
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Car Name</TableHead>
-                      <TableHead>Brand</TableHead>
-                      <TableHead>Price/Day</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Total Bookings</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {cars.map((car) => (
-                      <TableRow key={car.id}>
-                        <TableCell className="font-medium">{car.name}</TableCell>
-                        <TableCell>{car.brand}</TableCell>
-                        <TableCell>${car.pricePerDay}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(car.status)}>
-                            {car.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{car.totalBookings}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            {showAddCarForm ? (
+              <AddCarForm 
+                onCarAdded={handleCarAdded}
+                onCancel={() => setShowAddCarForm(false)}
+              />
+            ) : (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Fleet Management</CardTitle>
+                    <CardDescription>
+                      Manage your car inventory and add new vehicles
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => setShowAddCarForm(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add New Car
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">Fleet management coming soon</p>
+                    <p className="text-sm text-gray-400">You can add new cars using the button above</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Business Metrics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 border rounded">
+                        <div className="text-sm text-gray-600">Avg Booking Value</div>
+                        <div className="font-bold">₹{stats.averageBookingValue}</div>
+                      </div>
+                      <div className="p-3 border rounded">
+                        <div className="text-sm text-gray-600">Conversion Rate</div>
+                        <div className="font-bold">{stats.totalUsers > 0 ? Math.round((stats.activeUsers / stats.totalUsers) * 100) : 0}%</div>
+                      </div>
+                      <div className="p-3 border rounded">
+                        <div className="text-sm text-gray-600">Revenue per User</div>
+                        <div className="font-bold">₹{stats.totalUsers > 0 ? Math.round(stats.totalRevenue / stats.totalUsers) : 0}</div>
+                      </div>
+                      <div className="p-3 border rounded">
+                        <div className="text-sm text-gray-600">Booking Success Rate</div>
+                        <div className="font-bold">{bookings.length > 0 ? Math.round((bookings.filter(b => b.status === 'completed').length / bookings.length) * 100) : 0}%</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Payment Analytics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="text-sm text-gray-600">Total Paid</div>
+                          <div className="text-xl font-bold text-green-600">₹{bookings.filter(b => b.paymentStatus === 'paid').reduce((sum, b) => sum + b.total, 0).toLocaleString()}</div>
+                        </div>
+                        <div className="text-2xl">💰</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm">Paid Bookings</span>
+                        <span className="text-sm font-medium">{bookings.filter(b => b.paymentStatus === 'paid').length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Pending Payments</span>
+                        <span className="text-sm font-medium">{bookings.filter(b => b.paymentStatus === 'pending').length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Refunded</span>
+                        <span className="text-sm font-medium">{bookings.filter(b => b.paymentStatus === 'refunded').length}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reports" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Analytics Overview
+                  <Package className="h-5 w-5" />
+                  Business Reports
                 </CardTitle>
                 <CardDescription>
-                  Track your business performance
+                  Generate and analyze comprehensive business reports
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="p-4 border rounded-lg">
-                    <h3 className="font-semibold mb-2">Monthly Revenue</h3>
-                    <div className="text-2xl font-bold text-green-600">$3,420</div>
-                    <p className="text-sm text-gray-600">This month</p>
+                    <h3 className="font-semibold mb-2">Monthly Financial Report</h3>
+                    <p className="text-sm text-gray-600 mb-2">Total Revenue: ₹{stats.totalRevenue.toLocaleString()}</p>
+                    <p className="text-sm text-gray-600 mb-4">Total Bookings: {stats.totalBookings}</p>
+                    <Button size="sm" disabled>Coming Soon</Button>
                   </div>
                   <div className="p-4 border rounded-lg">
-                    <h3 className="font-semibold mb-2">Popular Cars</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm">Honda Civic</span>
-                        <span className="text-sm font-medium">31 bookings</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">Toyota Camry</span>
-                        <span className="text-sm font-medium">23 bookings</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">BMW X3</span>
-                        <span className="text-sm font-medium">15 bookings</span>
-                      </div>
-                    </div>
+                    <h3 className="font-semibold mb-2">Customer Analytics Report</h3>
+                    <p className="text-sm text-gray-600 mb-2">Total Users: {stats.totalUsers}</p>
+                    <p className="text-sm text-gray-600 mb-4">Active Users: {stats.activeUsers}</p>
+                    <Button size="sm" disabled>Coming Soon</Button>
                   </div>
                 </div>
               </CardContent>

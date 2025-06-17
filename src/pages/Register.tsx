@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    fullName: "",
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -21,12 +22,13 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : value
     }));
   };
 
@@ -54,16 +56,9 @@ const Register = () => {
       return;
     }
 
-    setTimeout(() => {
-      if (formData.email && formData.password && formData.fullName) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email: formData.email,
-            name: formData.fullName,
-            role: "user",
-          })
-        );
+    try {
+      const success = await register(formData);
+      if (success) {
         toast({
           title: "Registration successful!",
           description: "Welcome to RentCars",
@@ -76,24 +71,24 @@ const Register = () => {
           variant: "destructive",
         });
       }
+    } catch (error) {
+      toast({
+        title: "Registration failed",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link
-            to="/"
-            className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
-          >
+          <Link to="/" className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors">
             <Car className="h-8 w-8" />
-            <span className="text-2xl font-bold">Pick</span>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              &
-            </span>
-            <span className="text-2xl font-bold">Go</span>
+            <span className="text-2xl font-bold">RentCars</span>
           </Link>
         </div>
 
@@ -107,12 +102,12 @@ const Register = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="name">Full Name</Label>
                 <Input
-                  id="fullName"
-                  name="fullName"
-                  placeholder="Enter your full name"
-                  value={formData.fullName}
+                  id="name"
+                  name="name"
+                  placeholder="John Doe"
+                  value={formData.name}
                   onChange={handleChange}
                   required
                 />
@@ -123,7 +118,7 @@ const Register = () => {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="john@example.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -176,8 +171,8 @@ const Register = () => {
                   id="acceptTerms"
                   name="acceptTerms"
                   checked={formData.acceptTerms}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({ ...prev, acceptTerms: checked as boolean }))
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, acceptTerms: checked as boolean }))
                   }
                 />
                 <Label htmlFor="acceptTerms" className="text-sm">
