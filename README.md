@@ -1,92 +1,106 @@
 # 🛺 Pick‑Go
 
-A responsive **MERN stack** application for booking and managing electric vehicle (EV) trips.  
-Built with **MongoDB**, **Express**, **React**, **Node.js**, and optional **TypeScript** support.
+A full-featured, responsive MERN stack application for booking and managing electric vehicle (EV) trips.
+Built using MongoDB, Express, React, Node.js, and enhanced with TailwindCSS, JWT Auth, and modern UI libraries.
 
----
+🌐 Live URL: [https://pick-go-rho.vercel.app](https://pick-go-rho.vercel.app)
 
-## 🚀 Features
+🚀 Features
+🌐 Full user registration and login with JWT authentication
 
-- 🌐 Full user registration and authentication  
-- 🔍 Browse and filter EVs  
-- 🗓️ Booking flow with date selection, price calculation  
-- 📋 “My Trips” dashboard (upcoming, active, past)  
-- 📥 Download receipts as HTML/PDF  
-- 📧 Realistic toast notifications and friendly UI  
-- 🔧 Admin panel for managing listings & users (if implemented)
+🔍 Browse and filter available EVs
 
----
+🗓️ Intuitive booking with date selection and pricing
 
-## 🛠️ Tech Stack
+📋 Trip dashboard to manage upcoming, active, and past bookings
 
-| Layer         | Technology              |
-|---------------|-------------------------|
-| Frontend      | React, React Router, Tailwind CSS |
-| Backend       | Node.js, Express, JWT, bcrypt |
-| Database      | MongoDB (Atlas or local) |
-| PDF Generation| html2pdf.js or jsPDF |
-| Storage       | Local storage (tokens, persisted bookings) |
-| UI Library    | RADIX UI / ShadCN + Lucide Icons |
-| Notifications | Custom hook + Toast UI |
+📄 Downloadable receipts (HTML & PDF format)
 
----
+🔔 Beautiful toast notifications for actions
 
-## 🛠️ Installation & Setup
+🛠️ Optional admin panel for managing vehicles and users (if enabled)
 
-1. **Clone**
+🛠️ Tech Stack
+Layer    Technology
+Frontend    React, React Router, Tailwind CSS
+Backend     Node.js, Express.js, JWT, bcrypt
+Database     MongoDB,  Atlas
+PDF Tool   html2pdf.js / jsPDF
+Storage    Local Storage (auth token, bookings)
+UI Library  Radix UI / ShadCN, Lucide Icons
+Toast   Custom Toast Hook + Toast UI
 
-   ```bash
-   git clone https://github.com/MSC-0013/Pick-Go.git
-   cd Pick-Go
-# Server – .env
-MONGO_URI=<your_mongo_uri>
-JWT_SECRET=<your_jwt_secret>
-# Client – .env
-REACT_APP_API_URL=http://localhost:5000/api
-cd server && npm install && npm run dev
-cd ../client && npm install && npm start
+📦 Installation & Setup
+
+1. Clone the Repository
+git clone [https://github.com/MSC-0013/Pick-Go.git](https://github.com/MSC-0013/Pick-Go.git)
+cd Pick-Go
+2. Configure Environment Variables
+Backend .env (inside /server):
+
+env
+Copy
+Edit
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+PORT=5000
+Frontend .env (inside /client):
+REACT_APP_API_URL=<http://localhost:5000/api>
+3. Run the App
+Start Backend:
+cd server
+npm install
+npm run dev
+Start Frontend:
+npm install
+npm run dev
+
 🧪 Usage
-Navigate to http://localhost:3000
+Navigate to [http://localhost:3000](http://localhost:3000)
 
-Register and log in
+Register or log in
 
-Browse EVs and make a booking
+Browse available EVs
 
-View your trips dashboard
+Book a trip with selected dates
 
-Download receipts via Download buttons
+View bookings in the dashboard
 
-🛡️ Security & Auth
-Password hashing with bcrypt
+Download trip receipts as PDF or HTML
 
-JWT-based authentication
+🔐 Security & Authentication
+Passwords hashed using bcrypt
 
-Protected routes on backend and frontend
+JWT-based token authentication
 
-Basic validation + error handling
+Protected API routes on backend
+
+Auth-guarded routes on frontend
+
+Basic form validation and error handling
 
 ✅ Contributing
-Feel free to submit issues or PRs!
-Suggested roadmap:
+Contributions are welcome!
+Feel free to open issues, suggest features, or submit pull requests.
 
-Add payment gateway
+Suggested Improvements:
+Add payment gateway (Razorpay/Stripe)
 
-Enhance booking calendar UX
+Improve calendar UX
 
-Admin dashboard improvements
+Add vehicle images and filters
 
-Internationalization (i18n)
+Build full admin dashboard
 
+Add internationalization (i18n) support
 
----
+📸 Optional Enhancements
+📷 Add screenshots of UI inside a /screenshots folder
 
-### 💡 Tips to Elevate It
+🎥 Demo video or GIF preview
 
-- **Screenshots**: Add GitHub screenshots of your UI.
-- **Demo link**: Add a live demo or video walkthrough.
-- **Endpoints**: Document API endpoints in a `docs/` folder.
-- **Deploy instructions**: Include Heroku/Vercel details if deployed.
-- **Badges**: Add build status, license, npm version badges.
+🧪 API documentation inside a /docs folder
 
-Just copy, paste, and adapt—your README will be clean, professional, and very user-friendly. Let me know if you want help customizing any section!
-::contentReference[oaicite:0]{index=0}
+🌐 Deployment instructions (Vercel/Render/Heroku)
+
+🏷️ Badges: GitHub stars, build status, license, etc.
