@@ -238,6 +238,7 @@ Frontend route guards and validation
 
 🧠 Add ML-based vehicle suggestions
 </pre>
+<pre>
 
 🤝 Contributing
 Contributions are welcome!
@@ -253,6 +254,7 @@ Submit a PR, open an issue, or suggest a new feature.
 🪪 License
 This project is licensed under the MIT License
 
+</pre>
 
 👤 Author
 Soumayshree Rout
