@@ -68,7 +68,6 @@ Built using **MongoDB**, **Express**, **React**, **Node.js**, styled with **Tail
 
 <p float="left">
   <img src="screenshots/Booking.png" width="300"/>
-  <img src="screenshots/Trip1.png" width="300"/>
   <img src="screenshots/Trip2.png" width="300"/>
   <img src="screenshots/Trip3.png" width="300"/>
 </p>
