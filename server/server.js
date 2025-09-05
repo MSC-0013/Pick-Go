@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./db');
 const authRoutes = require('./routes/auth');
+const bookingRoutes = require('./routes/booking');
 
 // Load environment variables
 dotenv.config();
@@ -30,6 +31,7 @@ connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Default route
 app.get('/', (req, res) => res.send('API running'));

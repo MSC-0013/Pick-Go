@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   Calendar,
-  MapPin,
   Clock,
   CreditCard,
   ArrowLeft,
   Check,
   Star,
   Users,
-  Zap
+  Zap,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,8 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import { cars } from "@/data/cars";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const Booking = () => {
   const { carId } = useParams();
@@ -39,7 +41,7 @@ const Booking = () => {
     endDate: "",
     pickupLocation: "",
     dropoffLocation: "",
-    additionalRequests: ""
+    additionalRequests: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +52,7 @@ const Booking = () => {
     const { name, value } = e.target;
     setBookingData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -59,8 +61,7 @@ const Booking = () => {
       const start = new Date(bookingData.startDate);
       const end = new Date(bookingData.endDate);
       const diffTime = Math.abs(end.getTime() - start.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays;
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     }
     return 0;
   };
@@ -70,7 +71,7 @@ const Booking = () => {
   const tax = subtotal * 0.18;
   const total = subtotal + tax;
 
-  const handleBooking = async (e) => {
+  const handleBooking = (e) => {
     e.preventDefault();
 
     const userStr = localStorage.getItem("user");
@@ -78,7 +79,7 @@ const Booking = () => {
       toast({
         title: "Login required",
         description: "Please login to make a booking",
-        variant: "destructive"
+        variant: "destructive",
       });
       navigate("/login");
       return;
@@ -90,7 +91,7 @@ const Booking = () => {
       toast({
         title: "Please select dates",
         description: "Start date and end date are required",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -99,7 +100,7 @@ const Booking = () => {
       toast({
         title: "Invalid dates",
         description: "End date must be after start date",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -107,7 +108,6 @@ const Booking = () => {
     setIsLoading(true);
 
     const bookingDetails = {
-      id: `booking-${Date.now()}`,
       userId: user.id,
       userEmail: user.email,
       userName: user.name || "User",
@@ -121,23 +121,27 @@ const Booking = () => {
       subtotal,
       tax: Math.round(tax),
       total: Math.round(total),
-      status: "confirmed",
-      paymentStatus: "paid",
-      bookingDate: new Date().toISOString()
     };
 
-    const existingBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
-    existingBookings.push(bookingDetails);
-    localStorage.setItem("bookings", JSON.stringify(existingBookings));
-
-    setTimeout(() => {
-      toast({
-        title: "Booking confirmed!",
-        description: "Your EV has been booked successfully"
+    axios
+      .post(`${API_URL}/bookings`, bookingDetails, { withCredentials: true })
+      .then(() => {
+        toast({
+          title: "Booking confirmed!",
+          description: "Your EV has been booked successfully",
+        });
+        navigate("/my-bookings");
+      })
+      .catch((err) => {
+        toast({
+          title: "Error",
+          description: err.message || "Failed to save booking",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-      navigate("/my-bookings");
-      setIsLoading(false);
-    }, 2000);
   };
 
   return (
@@ -155,8 +159,12 @@ const Booking = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete your booking</h1>
-          <p className="text-gray-600">You're just a few steps away from your EV adventure</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Complete your booking
+          </h1>
+          <p className="text-gray-600">
+            You're just a few steps away from your EV adventure
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -168,7 +176,9 @@ const Booking = () => {
                   <Calendar className="h-5 w-5 text-blue-600" />
                   Trip details
                 </CardTitle>
-                <CardDescription>When and where would you like to pick up your EV?</CardDescription>
+                <CardDescription>
+                  When and where would you like to pick up your EV?
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleBooking} className="space-y-6">
@@ -194,7 +204,10 @@ const Booking = () => {
                         type="date"
                         value={bookingData.endDate}
                         onChange={handleInputChange}
-                        min={bookingData.startDate || new Date().toISOString().split("T")[0]}
+                        min={
+                          bookingData.startDate ||
+                          new Date().toISOString().split("T")[0]
+                        }
                         required
                         className="h-12"
                       />
@@ -229,7 +242,9 @@ const Booking = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="additionalRequests">Additional Requests (Optional)</Label>
+                    <Label htmlFor="additionalRequests">
+                      Additional Requests (Optional)
+                    </Label>
                     <Textarea
                       id="additionalRequests"
                       name="additionalRequests"
@@ -281,11 +296,15 @@ const Booking = () => {
                       <Badge variant="outline">{car.brand}</Badge>
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-gray-600">{car.rating}</span>
+                        <span className="text-sm text-gray-600">
+                          {car.rating}
+                        </span>
                       </div>
                     </div>
                     <h3 className="font-semibold text-lg mb-2">{car.name}</h3>
-                    <p className="text-sm text-gray-600 mb-3">{car.description}</p>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {car.description}
+                    </p>
 
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="flex items-center gap-2">
@@ -339,7 +358,7 @@ const Booking = () => {
                     "Comprehensive insurance",
                     "24/7 roadside assistance",
                     "Free charging guidance",
-                    "Unlimited kilometers"
+                    "Unlimited kilometers",
                   ].map((item, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-green-500" />
