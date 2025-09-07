@@ -107,6 +107,10 @@ const Booking = () => {
 
     setIsLoading(true);
 
+    // Format dates as ISO strings
+    const formattedStartDate = new Date(bookingData.startDate).toISOString();
+    const formattedEndDate = new Date(bookingData.endDate).toISOString();
+
     const bookingDetails = {
       userId: user.id,
       userEmail: user.email,
@@ -116,12 +120,22 @@ const Booking = () => {
       carImage: car.image,
       carBrand: car.brand,
       pricePerDay: car.pricePerDay,
-      ...bookingData,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      pickupLocation: bookingData.pickupLocation,
+      dropoffLocation: bookingData.dropoffLocation,
+      additionalRequests: bookingData.additionalRequests,
       totalDays,
       subtotal,
       tax: Math.round(tax),
       total: Math.round(total),
+      status: "pending", // initial status for new booking
+      paymentStatus: "pending", // initial payment status
+      bookingDate: new Date().toISOString(), // timestamp for booking creation
     };
+
+    // Debug: Log bookingDetails to inspect payload
+    console.log("Booking payload:", bookingDetails);
 
     axios
       .post(`${API_URL}/bookings`, bookingDetails, { withCredentials: true })
@@ -133,9 +147,17 @@ const Booking = () => {
         navigate("/my-bookings");
       })
       .catch((err) => {
+        // Log full error response for debugging
+        console.error("Booking error:", err.response?.data || err.message);
+        const errorMsg =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          JSON.stringify(err.response?.data) ||
+          err.message ||
+          "Failed to save booking";
         toast({
           title: "Error",
-          description: err.message || "Failed to save booking",
+          description: errorMsg,
           variant: "destructive",
         });
       })

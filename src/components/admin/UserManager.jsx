@@ -25,24 +25,33 @@ const UserManager = () => {
     });
   };
 
-  const getUserBookingStats = (userEmail) => {
-    const userBookings = bookings.filter(booking => booking.userEmail === userEmail);
-    const totalSpent = userBookings.reduce((sum, booking) => sum + booking.total, 0);
+  const getUserBookingStats = (user) => {
+    // Match bookings by userId if available, else fallback to userEmail
+    const userBookings = bookings.filter(
+      booking =>
+        (booking.userId && booking.userId === user.id) ||
+        (booking.userEmail && booking.userEmail === user.email)
+    );
+    const totalSpent = userBookings.reduce((sum, booking) => sum + (booking.total || 0), 0);
+    // Use startDate as last booking date if available
+    const lastBooking = userBookings.length > 0
+      ? userBookings[userBookings.length - 1].startDate || userBookings[userBookings.length - 1].bookingDate
+      : null;
     return {
       bookingCount: userBookings.length,
       totalSpent,
-      lastBooking: userBookings.length > 0 ? userBookings[userBookings.length - 1].bookingDate : null
+      lastBooking
     };
   };
 
   const totalUsers = users.length;
   const activeUsers = users.filter(user => {
-    const stats = getUserBookingStats(user.email);
+    const stats = getUserBookingStats(user);
     return stats.bookingCount > 0;
   }).length;
 
   const totalRevenue = users.reduce((sum, user) => {
-    const stats = getUserBookingStats(user.email);
+    const stats = getUserBookingStats(user);
     return sum + stats.totalSpent;
   }, 0);
 
@@ -126,7 +135,7 @@ const UserManager = () => {
               </TableHeader>
               <TableBody>
                 {users.map((user) => {
-                  const stats = getUserBookingStats(user.email);
+                  const stats = getUserBookingStats(user);
                   return (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">#{user.id.slice(-6)}</TableCell>
@@ -165,6 +174,10 @@ const UserManager = () => {
                           {stats.bookingCount > 0 ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
+                      {/* Optionally show last booking date */}
+                      {/* <TableCell>
+                        {stats.lastBooking ? new Date(stats.lastBooking).toLocaleDateString() : 'N/A'}
+                      </TableCell> */}
                     </TableRow>
                   );
                 })}

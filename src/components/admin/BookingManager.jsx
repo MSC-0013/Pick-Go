@@ -408,7 +408,11 @@ const BookingManager = () => {
                 </p>
                 <p>
                   <strong>Booking Date:</strong>{" "}
-                  {new Date(selectedBooking.bookingDate).toLocaleDateString()}
+                  {selectedBooking.bookingDate
+                    ? new Date(selectedBooking.bookingDate).toLocaleDateString()
+                    : selectedBooking.startDate
+                    ? new Date(selectedBooking.startDate).toLocaleDateString()
+                    : "N/A"}
                 </p>
               </div>
               <div>

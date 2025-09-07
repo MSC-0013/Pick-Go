@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { Calendar, MapPin, Car, Clock, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,23 +9,35 @@ import Navigation from "@/components/Navigation";
 import ReceiptDownload from "@/components/ReceiptDownload";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (!user) {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) {
       navigate("/login");
       return;
     }
+    const user = JSON.parse(userStr);
 
-    const storedBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
-    setBookings(storedBookings);
+    // Fetch bookings for the logged-in user from backend
+    axios
+      .get(`${API_URL}/bookings/user/${user.id}`, { withCredentials: true })
+      .then((res) => {
+        setBookings(res.data);
+      })
+      .catch(() => {
+        setBookings([]);
+      })
+      .finally(() => setIsLoading(false));
   }, [navigate]);
 
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'confirmed':
         return 'bg-green-100 text-green-800';
       case 'completed':
@@ -144,73 +157,77 @@ const MyBookings = () => {
           <p className="text-gray-600">Manage your electric vehicle bookings</p>
         </div>
 
-        <Tabs defaultValue="upcoming" className="space-y-6">
-          <TabsList className="grid w-full md:w-auto md:grid-cols-3">
-            <TabsTrigger value="upcoming" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Upcoming ({upcomingBookings.length})
-            </TabsTrigger>
-            <TabsTrigger value="active" className="flex items-center gap-2">
-              <Car className="h-4 w-4" />
-              Active ({activeBookings.length})
-            </TabsTrigger>
-            <TabsTrigger value="past" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Past ({pastBookings.length})
-            </TabsTrigger>
-          </TabsList>
+        {isLoading ? (
+          <div className="text-center py-12 text-gray-500">Loading bookings...</div>
+        ) : (
+          <Tabs defaultValue="upcoming" className="space-y-6">
+            <TabsList className="grid w-full md:w-auto md:grid-cols-3">
+              <TabsTrigger value="upcoming" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Upcoming ({upcomingBookings.length})
+              </TabsTrigger>
+              <TabsTrigger value="active" className="flex items-center gap-2">
+                <Car className="h-4 w-4" />
+                Active ({activeBookings.length})
+              </TabsTrigger>
+              <TabsTrigger value="past" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Past ({pastBookings.length})
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="upcoming" className="space-y-6">
-            {upcomingBookings.length > 0 ? (
-              upcomingBookings.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
-              ))
-            ) : (
-              <Card className="border-0 shadow-lg">
-                <CardContent className="p-12 text-center">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">No upcoming trips</h3>
-                  <p className="text-gray-600 mb-6">Ready to plan your next electric adventure?</p>
-                  <Button onClick={() => navigate("/cars")} className="bg-blue-600 hover:bg-blue-700">
-                    Browse Cars
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+            <TabsContent value="upcoming" className="space-y-6">
+              {upcomingBookings.length > 0 ? (
+                upcomingBookings.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))
+              ) : (
+                <Card className="border-0 shadow-lg">
+                  <CardContent className="p-12 text-center">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No upcoming trips</h3>
+                    <p className="text-gray-600 mb-6">Ready to plan your next electric adventure?</p>
+                    <Button onClick={() => navigate("/cars")} className="bg-blue-600 hover:bg-blue-700">
+                      Browse Cars
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
 
-          <TabsContent value="active" className="space-y-6">
-            {activeBookings.length > 0 ? (
-              activeBookings.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
-              ))
-            ) : (
-              <Card className="border-0 shadow-lg">
-                <CardContent className="p-12 text-center">
-                  <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">No active trips</h3>
-                  <p className="text-gray-600">You don't have any active bookings right now.</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+            <TabsContent value="active" className="space-y-6">
+              {activeBookings.length > 0 ? (
+                activeBookings.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))
+              ) : (
+                <Card className="border-0 shadow-lg">
+                  <CardContent className="p-12 text-center">
+                    <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No active trips</h3>
+                    <p className="text-gray-600">You don't have any active bookings right now.</p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
 
-          <TabsContent value="past" className="space-y-6">
-            {pastBookings.length > 0 ? (
-              pastBookings.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
-              ))
-            ) : (
-              <Card className="border-0 shadow-lg">
-                <CardContent className="p-12 text-center">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">No past trips</h3>
-                  <p className="text-gray-600">Your booking history will appear here.</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="past" className="space-y-6">
+              {pastBookings.length > 0 ? (
+                pastBookings.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))
+              ) : (
+                <Card className="border-0 shadow-lg">
+                  <CardContent className="p-12 text-center">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No past trips</h3>
+                    <p className="text-gray-600">Your booking history will appear here.</p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );

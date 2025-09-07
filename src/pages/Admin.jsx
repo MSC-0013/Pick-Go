@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Car,
@@ -23,18 +23,44 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
+import axios from "axios";
 import AddCarForm from "@/components/admin/AddCarForm";
 import BookingManager from "@/components/admin/BookingManager";
 import UserManager from "@/components/admin/UserManager";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const Admin = () => {
   const [showAddCarForm, setShowAddCarForm] = useState(false);
-  const { logout, user, getAllUsers, getAllBookings } = useAuth();
+  const [cars, setCars] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
-  const users = getAllUsers();
-  const bookings = getAllBookings();
-  const cars = JSON.parse(localStorage.getItem("cars") || "[]");
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+    Promise.all([
+      axios.get(`${API_URL}/cars`, { withCredentials: true }),
+      axios.get(`${API_URL}/users`, { withCredentials: true }),
+      axios.get(`${API_URL}/bookings`, { withCredentials: true }),
+    ])
+      .then(([carsRes, usersRes, bookingsRes]) => {
+        setCars(Array.isArray(carsRes.data) ? carsRes.data : []);
+        setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
+        setBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
+      })
+      .catch((err) => {
+        setError("Failed to load dashboard data. Please try again.");
+        setCars([]);
+        setUsers([]);
+        setBookings([]);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const totalRevenue = bookings
     .filter((b) => b.paymentStatus === "paid")
@@ -66,6 +92,8 @@ const Admin = () => {
 
   const handleCarAdded = () => {
     setShowAddCarForm(false);
+    axios.get(`${API_URL}/cars`, { withCredentials: true })
+      .then(res => setCars(Array.isArray(res.data) ? res.data : []));
   };
 
   const recentBookings = [...bookings]
@@ -129,6 +157,12 @@ const Admin = () => {
           </p>
         </div>
 
+        {isLoading ? (
+          <div className="text-center py-12 text-gray-500">Loading dashboard...</div>
+        ) : error ? (
+          <div className="text-center py-12 text-red-500">{error}</div>
+        ) : (
+        <>
         {/* Enhanced Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -225,12 +259,14 @@ const Admin = () => {
                           </div>
                           <div className="text-right">
                             <div className="font-bold text-green-600">
-                              ₹{booking.total.toLocaleString()}
+                              ₹{booking.total?.toLocaleString?.() ?? booking.total}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {new Date(
-                                booking.bookingDate
-                              ).toLocaleDateString()}
+                              {booking.bookingDate
+                                ? new Date(booking.bookingDate).toLocaleDateString()
+                                : booking.startDate
+                                ? new Date(booking.startDate).toLocaleDateString()
+                                : ""}
                             </div>
                           </div>
                         </div>
@@ -267,7 +303,7 @@ const Admin = () => {
                           </div>
                           <div className="text-right">
                             <div className="font-bold text-green-600">
-                              ₹{customer.totalSpent.toLocaleString()}
+                              ₹{customer.totalSpent?.toLocaleString?.() ?? customer.totalSpent}
                             </div>
                           </div>
                         </div>
@@ -312,15 +348,32 @@ const Admin = () => {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8">
-                    <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">
-                      Fleet management coming soon
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      You can add new cars using the button above
-                    </p>
-                  </div>
+                  {cars.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-4">
+                        No cars in fleet yet.
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        You can add new cars using the button above
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {cars.map(car => (
+                        <Card key={car.id || car._id} className="border shadow">
+                          <CardContent className="p-4 flex gap-4 items-center">
+                            <img src={car.imageUrl || car.image} alt={car.name} className="w-20 h-14 object-cover rounded" />
+                            <div>
+                              <div className="font-bold">{car.name}</div>
+                              <div className="text-sm text-gray-500">{car.brand} • {car.model} • {car.year}</div>
+                              <div className="text-sm text-blue-600 font-semibold">₹{car.pricePerDay}/day</div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -498,6 +551,8 @@ const Admin = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        </>
+        )}
       </div>
     </div>
   );
