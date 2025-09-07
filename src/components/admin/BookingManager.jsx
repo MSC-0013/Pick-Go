@@ -34,7 +34,7 @@ const BookingManager = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const { toast } = useToast();
 
-  // Load bookings from backend
+  // Load bookings
   useEffect(() => {
     refreshBookings();
   }, []);
@@ -68,7 +68,7 @@ const BookingManager = () => {
       .then(() => {
         setBookings((prev) =>
           prev.map((b) =>
-            b.id === bookingId ? { ...b, status: newStatus } : b
+            b._id === bookingId ? { ...b, status: newStatus } : b
           )
         );
         toast({
@@ -95,7 +95,7 @@ const BookingManager = () => {
       .then(() => {
         setBookings((prev) =>
           prev.map((b) =>
-            b.id === bookingId
+            b._id === bookingId
               ? { ...b, paymentStatus: newPaymentStatus }
               : b
           )
@@ -118,7 +118,7 @@ const BookingManager = () => {
     axios
       .delete(`${API_URL}/bookings/${bookingId}`, { withCredentials: true })
       .then(() => {
-        setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+        setBookings((prev) => prev.filter((b) => b._id !== bookingId));
         toast({
           title: "Booking deleted",
           description: `Booking #${bookingId} has been removed`,
@@ -266,9 +266,9 @@ const BookingManager = () => {
               </TableHeader>
               <TableBody>
                 {bookings.map((b) => (
-                  <TableRow key={b.id}>
+                  <TableRow key={b._id}>
                     <TableCell className="font-medium">
-                      #{String(b.id).slice(-6)}
+                      #{String(b._id).slice(-6)}
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{b.userName}</div>
@@ -292,9 +292,7 @@ const BookingManager = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">
-                      <div>
-                        {new Date(b.startDate).toLocaleDateString()}
-                      </div>
+                      <div>{new Date(b.startDate).toLocaleDateString()}</div>
                       <div className="text-gray-500">
                         to {new Date(b.endDate).toLocaleDateString()}
                       </div>
@@ -313,7 +311,7 @@ const BookingManager = () => {
                     <TableCell>
                       <Select
                         value={b.status}
-                        onValueChange={(v) => handleStatusUpdate(b.id, v)}
+                        onValueChange={(v) => handleStatusUpdate(b._id, v)}
                       >
                         <SelectTrigger className="w-32">
                           <Badge className={getStatusColor(b.status)}>
@@ -333,14 +331,12 @@ const BookingManager = () => {
                       <Select
                         value={b.paymentStatus}
                         onValueChange={(v) =>
-                          handlePaymentUpdate(b.id, v)
+                          handlePaymentUpdate(b._id, v)
                         }
                       >
                         <SelectTrigger className="w-24">
                           <Badge
-                            className={getPaymentStatusColor(
-                              b.paymentStatus
-                            )}
+                            className={getPaymentStatusColor(b.paymentStatus)}
                           >
                             {b.paymentStatus}
                           </Badge>
@@ -367,7 +363,7 @@ const BookingManager = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => deleteBooking(b.id)}
+                          onClick={() => deleteBooking(b._id)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -386,7 +382,7 @@ const BookingManager = () => {
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>
-              Booking Details - #{String(selectedBooking.id).slice(-6)}
+              Booking Details - #{String(selectedBooking._id).slice(-6)}
             </CardTitle>
             <Button
               variant="outline"
@@ -409,7 +405,9 @@ const BookingManager = () => {
                 <p>
                   <strong>Booking Date:</strong>{" "}
                   {selectedBooking.bookingDate
-                    ? new Date(selectedBooking.bookingDate).toLocaleDateString()
+                    ? new Date(
+                        selectedBooking.bookingDate
+                      ).toLocaleDateString()
                     : selectedBooking.startDate
                     ? new Date(selectedBooking.startDate).toLocaleDateString()
                     : "N/A"}

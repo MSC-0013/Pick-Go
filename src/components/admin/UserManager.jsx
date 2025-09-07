@@ -5,93 +5,95 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Users, UserCheck, UserX, RefreshCw, Mail, Calendar } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const UserManager = () => {
-  const { getAllUsers, getAllBookings } = useAuth();
-  const [users, setUsers] = useState(getAllUsers());
-  const [bookings] = useState(getAllBookings());
+  const [users, setUsers] = useState([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    setUsers(getAllUsers());
-  }, []);
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/users`, { withCredentials: true });
+      // Map backend data safely
+      const safeUsers = res.data.map(u => ({
+        id: u._id || u.id || "unknown",
+        name: u.name || "N/A",
+        email: u.email || "N/A",
+        role: u.role || (u.isAdmin ? "admin" : "user") || "user",
+        registrationDate: u.registrationDate || u.createdAt || null,
+      }));
+      setUsers(safeUsers);
 
-  const refreshUsers = () => {
-    setUsers(getAllUsers());
-    toast({
-      title: "Users refreshed",
-      description: "Latest user data has been loaded",
-    });
+      toast({
+        title: "Users refreshed",
+        description: "Latest user data has been loaded",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const getUserBookingStats = (user) => {
-    // Match bookings by userId if available, else fallback to userEmail
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const getUserBookingStats = (user, bookings = []) => {
     const userBookings = bookings.filter(
       booking =>
         (booking.userId && booking.userId === user.id) ||
         (booking.userEmail && booking.userEmail === user.email)
     );
     const totalSpent = userBookings.reduce((sum, booking) => sum + (booking.total || 0), 0);
-    // Use startDate as last booking date if available
     const lastBooking = userBookings.length > 0
       ? userBookings[userBookings.length - 1].startDate || userBookings[userBookings.length - 1].bookingDate
       : null;
-    return {
-      bookingCount: userBookings.length,
-      totalSpent,
-      lastBooking
-    };
+    return { bookingCount: userBookings.length, totalSpent, lastBooking };
   };
 
   const totalUsers = users.length;
-  const activeUsers = users.filter(user => {
-    const stats = getUserBookingStats(user);
-    return stats.bookingCount > 0;
-  }).length;
-
-  const totalRevenue = users.reduce((sum, user) => {
-    const stats = getUserBookingStats(user);
-    return sum + stats.totalSpent;
-  }, 0);
+  const activeUsers = users.filter(user => getUserBookingStats(user).bookingCount > 0).length;
+  const totalRevenue = users.reduce((sum, user) => sum + getUserBookingStats(user).totalSpent, 0);
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+          <CardHeader className="flex justify-between items-center pb-2">
+            <CardTitle>Total Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalUsers}</div>
           </CardContent>
         </Card>
-        
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+          <CardHeader className="flex justify-between items-center pb-2">
+            <CardTitle>Active Users</CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{activeUsers}</div>
           </CardContent>
         </Card>
-        
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactive Users</CardTitle>
+          <CardHeader className="flex justify-between items-center pb-2">
+            <CardTitle>Inactive Users</CardTitle>
             <UserX className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-600">{totalUsers - activeUsers}</div>
           </CardContent>
         </Card>
-        
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+          <CardHeader className="flex justify-between items-center pb-2">
+            <CardTitle>Total Revenue</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -100,25 +102,21 @@ const UserManager = () => {
         </Card>
       </div>
 
-      {/* Users Management Table */}
+      {/* Users Table */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex justify-between items-center">
           <div>
             <CardTitle>User Management</CardTitle>
-            <CardDescription>
-              Manage all registered users and their booking activity
-            </CardDescription>
+            <CardDescription>Manage all registered users</CardDescription>
           </div>
-          <Button onClick={refreshUsers} variant="outline">
+          <Button onClick={fetchUsers} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
         </CardHeader>
         <CardContent>
           {users.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No users registered yet.</p>
-            </div>
+            <div className="text-center py-8 text-gray-500">No users registered yet.</div>
           ) : (
             <Table>
               <TableHeader>
@@ -134,50 +132,30 @@ const UserManager = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => {
+                {users.map(user => {
                   const stats = getUserBookingStats(user);
                   return (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">#{user.id.slice(-6)}</TableCell>
+                    <TableRow key={user.id || user.email}>
+                      <TableCell>#{user.id?.slice(-6) || "N/A"}</TableCell>
+                      <TableCell>{user.name}</TableCell>
+                      <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-blue-600">
-                              {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <span>{user.name || 'N/A'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-gray-400" />
-                          {user.email}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                        <Badge variant={user.role === "admin" ? "default" : "secondary"}>
                           {user.role}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {user.registrationDate ? new Date(user.registrationDate).toLocaleDateString() : 'N/A'}
+                        {user.registrationDate
+                          ? new Date(user.registrationDate).toLocaleDateString()
+                          : "N/A"}
                       </TableCell>
+                      <TableCell>{stats.bookingCount}</TableCell>
+                      <TableCell>₹{stats.totalSpent.toLocaleString()}</TableCell>
                       <TableCell>
-                        <span className="font-medium">{stats.bookingCount}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium text-green-600">₹{stats.totalSpent.toLocaleString()}</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={stats.bookingCount > 0 ? 'default' : 'secondary'}>
-                          {stats.bookingCount > 0 ? 'Active' : 'Inactive'}
+                        <Badge variant={stats.bookingCount > 0 ? "default" : "secondary"}>
+                          {stats.bookingCount > 0 ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
-                      {/* Optionally show last booking date */}
-                      {/* <TableCell>
-                        {stats.lastBooking ? new Date(stats.lastBooking).toLocaleDateString() : 'N/A'}
-                      </TableCell> */}
                     </TableRow>
                   );
                 })}

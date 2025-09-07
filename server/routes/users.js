@@ -6,7 +6,17 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const users = await User.find().select("-password");
-    res.json(users);
+    
+    // Map fields to match frontend expectations
+    const formattedUsers = users.map(u => ({
+      id: u._id.toString(),
+      name: u.name,
+      email: u.email,
+      role: u.isAdmin ? "admin" : "user",
+      registrationDate: u.createdAt,
+    }));
+
+    res.json(formattedUsers);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
