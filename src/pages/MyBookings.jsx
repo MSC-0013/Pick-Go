@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Calendar, MapPin, Car, Clock, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
@@ -24,13 +24,14 @@ const MyBookings = () => {
     }
     const user = JSON.parse(userStr);
 
-    // Fetch bookings for the logged-in user from backend
     axios
       .get(`${API_URL}/bookings/user/${user.id}`, { withCredentials: true })
       .then((res) => {
-        setBookings(res.data);
+        console.log("Fetched bookings:", res.data); // ✅ Debug log
+        setBookings(res.data || []);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Error fetching bookings:", err);
         setBookings([]);
       })
       .finally(() => setIsLoading(false));
@@ -38,30 +39,37 @@ const MyBookings = () => {
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
+      case "confirmed":
+        return "bg-green-100 text-green-800";
+      case "completed":
+        return "bg-blue-100 text-blue-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
+  // ✅ Now includes "pending"
   const upcomingBookings = bookings.filter(
-    (booking) => new Date(booking.startDate) > new Date() && booking.status === 'confirmed'
+    (booking) =>
+      new Date(booking.startDate) > new Date() &&
+      ["confirmed", "pending"].includes(booking.status?.toLowerCase())
   );
 
   const pastBookings = bookings.filter(
-    (booking) => new Date(booking.endDate) < new Date() || booking.status === 'completed'
+    (booking) =>
+      new Date(booking.endDate) < new Date() ||
+      booking.status?.toLowerCase() === "completed"
   );
 
   const activeBookings = bookings.filter(
     (booking) =>
       new Date(booking.startDate) <= new Date() &&
       new Date(booking.endDate) >= new Date() &&
-      booking.status === 'confirmed'
+      ["confirmed", "pending"].includes(booking.status?.toLowerCase())
   );
 
   const BookingCard = ({ booking }) => (
@@ -86,11 +94,17 @@ const MyBookings = () => {
                     {booking.status}
                   </Badge>
                 </div>
-                <h3 className="font-semibold text-xl text-gray-900">{booking.carName}</h3>
-                <p className="text-sm text-gray-600">Booking #{booking.id}</p>
+                <h3 className="font-semibold text-xl text-gray-900">
+                  {booking.carName}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Booking #{booking.id || booking._id}
+                </p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-blue-600">₹{Math.round(booking.total)}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  ₹{Math.round(booking.total)}
+                </p>
                 <p className="text-sm text-gray-600">{booking.totalDays} days</p>
               </div>
             </div>
@@ -179,51 +193,30 @@ const MyBookings = () => {
             <TabsContent value="upcoming" className="space-y-6">
               {upcomingBookings.length > 0 ? (
                 upcomingBookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
+                  <BookingCard key={booking.id || booking._id} booking={booking} />
                 ))
               ) : (
-                <Card className="border-0 shadow-lg">
-                  <CardContent className="p-12 text-center">
-                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">No upcoming trips</h3>
-                    <p className="text-gray-600 mb-6">Ready to plan your next electric adventure?</p>
-                    <Button onClick={() => navigate("/cars")} className="bg-blue-600 hover:bg-blue-700">
-                      Browse Cars
-                    </Button>
-                  </CardContent>
-                </Card>
+                <p className="text-center text-gray-600 py-8">No upcoming trips</p>
               )}
             </TabsContent>
 
             <TabsContent value="active" className="space-y-6">
               {activeBookings.length > 0 ? (
                 activeBookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
+                  <BookingCard key={booking.id || booking._id} booking={booking} />
                 ))
               ) : (
-                <Card className="border-0 shadow-lg">
-                  <CardContent className="p-12 text-center">
-                    <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">No active trips</h3>
-                    <p className="text-gray-600">You don't have any active bookings right now.</p>
-                  </CardContent>
-                </Card>
+                <p className="text-center text-gray-600 py-8">No active trips</p>
               )}
             </TabsContent>
 
             <TabsContent value="past" className="space-y-6">
               {pastBookings.length > 0 ? (
                 pastBookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
+                  <BookingCard key={booking.id || booking._id} booking={booking} />
                 ))
               ) : (
-                <Card className="border-0 shadow-lg">
-                  <CardContent className="p-12 text-center">
-                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">No past trips</h3>
-                    <p className="text-gray-600">Your booking history will appear here.</p>
-                  </CardContent>
-                </Card>
+                <p className="text-center text-gray-600 py-8">No past trips</p>
               )}
             </TabsContent>
           </Tabs>
