@@ -97,11 +97,11 @@ const Admin = () => {
   };
 
   const recentBookings = [...bookings]
-    .sort(
-      (a, b) =>
-        new Date(b.bookingDate).getTime() - new Date(a.bookingDate).getTime()
-    )
-    .slice(0, 5);
+  .sort(
+    (a, b) => new Date(b.bookingDate || b.createdAt) - new Date(a.bookingDate || a.createdAt)
+  )
+  .slice(0, 5);
+
 
   const topCustomers = users
     .map((u) => {

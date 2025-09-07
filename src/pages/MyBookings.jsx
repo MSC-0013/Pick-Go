@@ -27,8 +27,12 @@ const MyBookings = () => {
     axios
       .get(`${API_URL}/bookings/user/${user.id}`, { withCredentials: true })
       .then((res) => {
-        console.log("Fetched bookings:", res.data); // ✅ Debug log
-        setBookings(res.data || []);
+        console.log("Fetched bookings:", res.data);
+        // Sort by latest booking creation first
+        const sorted = (res.data || []).sort(
+          (a, b) => new Date(b.bookingDate || b.createdAt) - new Date(a.bookingDate || a.createdAt)
+        );
+        setBookings(sorted);
       })
       .catch((err) => {
         console.error("Error fetching bookings:", err);
@@ -52,7 +56,6 @@ const MyBookings = () => {
     }
   };
 
-  // ✅ Now includes "pending"
   const upcomingBookings = bookings.filter(
     (booking) =>
       new Date(booking.startDate) > new Date() &&
